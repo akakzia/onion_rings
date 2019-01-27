@@ -62,15 +62,12 @@ class MultiDimensionalEnv(gym.Env):
             }
 
 
-    def __init__(self):
-        pass
+    def __init__(self, n_dimensions=1):
 
-    def init(self,n):
-
-        if n <= 0:
+        if n_dimensions <= 0:
             raise ValueError('Number of dimension must be strictly positive')
 
-        self.n = n
+        self.n = n_dimensions
 
         self.max_position = 1
         self.max_speed = 0.1
@@ -90,7 +87,6 @@ class MultiDimensionalEnv(gym.Env):
         
         self.seed()
         self.reset()
-
 
     def seed(self,seed=None):
         self.np_random, seed = seeding.np_random(seed)
