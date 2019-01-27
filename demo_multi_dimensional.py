@@ -1,6 +1,6 @@
 import gym
-import gym_bi_dimensional
-env = gym.make('BiDimensional-v0')
+import gym_multi_dimensional
+env = gym.make('MultiDimensional-v0')
 
 for i_episode in range(10):
     observation = env.reset()
