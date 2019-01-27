@@ -4,7 +4,7 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 
-class BiDimensionalEnv(gym.Env):
+class MultiDimensionalEnv(gym.Env):
     """
     Description:
         An agent is in a square. The goal is to find the green door by

@@ -1,1 +1,0 @@
-from gym_bi_dimensional.envs.bi_dimensional_env import  BiDimensionalEnv
