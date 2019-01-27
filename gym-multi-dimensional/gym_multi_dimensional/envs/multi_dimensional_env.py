@@ -66,6 +66,10 @@ class MultiDimensionalEnv(gym.Env):
         pass
 
     def init(self,n):
+
+        if n <= 0:
+            raise ValueError('Number of dimension must be strictly positive')
+
         self.n = n
 
         self.max_position = 1
@@ -156,6 +160,9 @@ class MultiDimensionalEnv(gym.Env):
 
     def render(self, mode='human'):
 
+        if self.n >= 3:
+            return None
+
         if self.n==1:
             screen_width = 600
             screen_height = 200
@@ -214,11 +221,12 @@ class MultiDimensionalEnv(gym.Env):
                 self.redflag.set_color(1,0,0)
                 self.viewer.add_geom(self.redflag)
                 
-                if self.state is None: return None
+            if self.state is None:
+                return None
 
-                pos = self.state[0]
-                agentx = (pos+self.max_position)*scale
-                self.agenttrans.set_translation(agentx,agenty)
+            pos = self.state[0]
+            agentx = (pos+self.max_position)*scale
+            self.agenttrans.set_translation(agentx,agenty)
 
         elif self.n==2:
             screen_width = 600
@@ -296,11 +304,11 @@ class MultiDimensionalEnv(gym.Env):
                 
                 self.viewer.add_geom(self.agent)
                 
-                if self.state is None: return None
+            if self.state is None: return None
 
-                pos = self.state[0]
-                agent_position = (pos+self.max_position)*scale
-                self.agenttrans.set_translation(agent_position[0],agent_position[1])
+            pos = self.state[0]
+            agent_position = (pos+self.max_position)*scale
+            self.agenttrans.set_translation(agent_position[0],agent_position[1])
 
         return self.viewer.render(return_rgb_array = mode=='rgb_array')
 

@@ -1,7 +1,8 @@
 import gym
 import gym_multi_dimensional
 env = gym.make('MultiDimensional-v0')
-env.init(1)
+
+env.init(0)
 
 for i_episode in range(10):
     observation = env.reset()
