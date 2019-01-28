@@ -7,7 +7,9 @@ env = gym.make(id)
 for i_episode in range(10):
     observation = env.reset()
     cum_reward=0
-    for t in range(100):
+    episode_nb = 100
+    done = False
+    for t in range(episode_nb):
         env.render()
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
@@ -16,7 +18,7 @@ for i_episode in range(10):
         if done:
             print("Episode finished after {} timesteps, final reward : {}".format(t+1,cum_reward))
             break
-    if t==199:
-        print("Episode not finished after 199 timesteps,final reward : {}".format(cum_reward))
+    if not done:
+        print("Episode not finished after {} timesteps,final reward : {}".format(episode_nb,cum_reward))
 
 env.close()
