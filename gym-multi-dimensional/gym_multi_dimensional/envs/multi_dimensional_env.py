@@ -39,7 +39,7 @@ class MultiDimensionalEnv(gym.Env):
         
     Reward:
         Reward is 1 if the agent find the green (n-1)-face
-        Raward is 0.1 if the agent find a red (n-1)-face
+        Reward is 0.1 if the agent find a red (n-1)-face
 
     Starting State
         Agent 1st direction position is assigned a uniform random value between -0.6 and-0.4
@@ -61,32 +61,56 @@ class MultiDimensionalEnv(gym.Env):
             'video.frames_per_second': 30
             }
 
+    """ Default environement description , to be customized by the user """
+    default_description = { 'high_reward': 1 }
 
-    def __init__(self, n_dimensions=1):
 
+    def __init__(self, n_dimensions=1, env_description=default_description):
+
+        """ Sanity checks """
         if n_dimensions <= 0:
             raise ValueError('Number of dimension must be strictly positive')
 
-        self.n = n_dimensions
+#        if validate_env_description() is False:
+#            raise ValueError("Missing descriptors in environement description")
 
+        self.n = n_dimensions
         self.max_position = 1
         self.max_speed = 0.1
-        
-        self.high = np.array([
-            np.ones((self.n))*self.max_position,
-            np.ones((self.n))*self.max_speed
-            ])
+        self.high = np.array([np.ones((self.n))*self.max_position,
+                              np.ones((self.n))*self.max_speed
+                            ])
         self.low = -self.high
-
         self.action_space = spaces.Discrete(2*self.n+1)
-        self.observation_space = spaces.Box(
-                self.low, self.high, dtype=np.float32)
-
+        self.observation_space = spaces.Box(self.low, self.high, dtype=np.float32)
         self.viewer = None
         self.state = None
-        
         self.seed()
         self.reset()
+
+        """ Keep IDs of dimensions used for environement description """
+        self.high_reward = []
+        self.low_reward = []
+
+        self.load_description(env_description)
+
+    def _validate_env_description(self, env_description):
+        return True
+    
+    def load_description(self, env_description):
+
+        for i in range(self.n):
+
+            """ Assign high boundary of nth dimension to high reward """
+            self.high_reward.append((i, self.max_position))
+
+            """ Assign low boundary of nth dimension to low reward """ 
+            self.low_reward.append((i, - self.max_position))
+
+        print(self.high_reward)
+        print(self.low_reward)
+
+
 
     def seed(self,seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -124,17 +148,27 @@ class MultiDimensionalEnv(gym.Env):
             for direction in range(self.n):
                 position[direction] = np.clip(position[direction], -self.max_position, self.max_position)
 
-        #door
-        green_door = bool(position[0] >= self.max_position)
-        red_door = bool(position[0] <= -self.max_position)
-        for direction in range(1,self.n):
-            red_door = red_door or bool(position[direction] <= -self.max_position)
-            red_door = red_door or bool(position[direction] >= self.max_position)
-        done = bool(green_door or red_door)
-        if green_door:
+        high_reward = False
+        low_reward = False
+
+        """ Check for high reward in n dimensional space """
+        for infos in self.high_reward:
+            nth, boundary = infos
+            if abs(position[nth] + boundary) >= 2 * self.max_position:
+                    high_reward = True
+
+        """ Check for low reward in n dimensional space """
+        for infos in self.low_reward:
+            nth, boundary = infos
+            if abs(position[nth] + boundary) >= 2 * self.max_position:
+                    low_reward = True
+
+        """ Check for wall in n dimensional space """
+
+        if high_reward:
             reward = 1
             info = "green door"
-        elif red_door:
+        elif low_reward:
             reward =  0.1
             info = "red door"
         else:
@@ -142,7 +176,7 @@ class MultiDimensionalEnv(gym.Env):
             info = ""
 
         self.state = (position,velocity)
-        return np.array(self.state), reward, done, info
+        return np.array(self.state), reward, high_reward or low_reward, info
 
 
     def reset(self):
@@ -152,6 +186,56 @@ class MultiDimensionalEnv(gym.Env):
             ])
         self.state[0,0] = self.np_random.uniform(low=-0.6, high=-0.4)
         return np.array(self.state)
+
+
+    def get_vertices_list(self, nth, boundary, width, height, line=0):
+        if self.n == 1:
+
+            y1 = line + 20
+            y2 = line - 20
+
+            if nth == 0 and boundary == self.max_position:
+                x1 = width - 10
+                x2 = width
+
+            if nth == 0 and boundary == -self.max_position:
+                x1 = 0
+                x2 = 10
+
+            return x1, y1, x2, y2
+
+        if self.n == 2:
+
+            if nth == 0 and boundary == self.max_position:
+                x1 = width - 10
+                x2 = width
+                y1 = 0
+                y2 = height
+
+            if nth == 0 and boundary == -self.max_position:
+
+                x1 = 0
+                x2 = 10
+                y1 = 0
+                y2 = height
+
+            if nth == 1 and boundary == self.max_position:
+
+                x1 = 0
+                x2 = width
+                y1 = height - 10
+                y2 = height
+
+            if nth == 1 and boundary == -self.max_position:
+
+                x1 = 0
+                x2 = width
+                y1 = 10
+                y2 = 0
+            
+            return x1, y1, x2, y2
+
+        return None
 
 
     def render(self, mode='human'):
@@ -172,13 +256,13 @@ class MultiDimensionalEnv(gym.Env):
                 from gym.envs.classic_control import rendering
                 self.viewer = rendering.Viewer(screen_width, screen_height)
 
-                #track
+                """ Line sprite """
                 tracky = 100
                 self.track = rendering.Line((0,tracky),(screen_width,tracky))
                 self.track.set_color(0,0,0)
                 self.viewer.add_geom(self.track)
 
-                #agent
+                """ Agent sprite """
                 agentwidth = 20
                 agentheight = 20
                 agenty = tracky
@@ -189,33 +273,23 @@ class MultiDimensionalEnv(gym.Env):
                 self.agent.add_attr(self.agenttrans)
                 self.viewer.add_geom(self.agent)
 
-                #greenflag
-                greenflagx1 = screen_width-10
-                greenflagx2 = screen_width
-                greenflagy1 = tracky+20
-                greenflagy2 = tracky-20
-                self.greenflag = rendering.FilledPolygon([
-                    (greenflagx1, greenflagy1),
-                    (greenflagx2, greenflagy1),
-                    (greenflagx2, greenflagy2),
-                    (greenflagx1, greenflagy2)
-                    ])
-                self.greenflag.set_color(0,1,0)
-                self.viewer.add_geom(self.greenflag)
+                """ Build high reward sprite """
+                for reward in self.high_reward:
+                    nth, boundary = reward
+                    x1, y1, x2, y2 = self.get_vertices_list(nth, boundary, screen_width, screen_height, line=tracky)
+                    sprite = rendering.FilledPolygon([(x1, y1),(x2, y1),(x2, y2),(x1, y2)])
+                    sprite.set_color(0,1,0)
+                    self.viewer.add_geom(sprite)
 
-                #redflag
-                redflagx1 = 0
-                redflagx2 = 10
-                redflagy1 = tracky+20
-                redflagy2 = tracky-20
-                self.redflag = rendering.FilledPolygon([
-                    (redflagx1, redflagy1),
-                    (redflagx2, redflagy1),
-                    (redflagx2, redflagy2),
-                    (redflagx1, redflagy2)
-                    ])
-                self.redflag.set_color(1,0,0)
-                self.viewer.add_geom(self.redflag)
+                """ Build low reward sprite """
+                for reward in self.low_reward:
+                    nth, boundary = reward
+                    x1, y1, x2, y2 = self.get_vertices_list(nth, boundary, screen_width, screen_height, line=tracky)
+                    sprite = rendering.FilledPolygon([(x1, y1),(x2, y1),(x2, y2),(x1, y2)])
+                    sprite.set_color(1,0,0)
+                    self.viewer.add_geom(sprite)
+
+                """ Wall sprite """
                 
             if self.state is None:
                 return None
@@ -234,62 +308,26 @@ class MultiDimensionalEnv(gym.Env):
             if self.viewer is None:
                 from gym.envs.classic_control import rendering
                 self.viewer = rendering.Viewer(screen_width, screen_height)
+                
+                """ Build high reward sprite """
+                for reward in self.high_reward:
+                    nth, boundary = reward
+                    x1, y1, x2, y2 = self.get_vertices_list(nth, boundary, screen_width, screen_height)
+                    sprite = rendering.FilledPolygon([(x1, y1),(x2, y1),(x2, y2),(x1, y2)])
+                    sprite.set_color(0,1,0)
+                    self.viewer.add_geom(sprite)
 
-                #reddoor
-                reddoorx1 = 0
-                reddoorx2 = screen_width
-                reddoory1 = screen_height
-                reddoory2 = screen_height-10
-                self.reddoor = rendering.FilledPolygon([
-                    (reddoorx1, reddoory1),
-                    (reddoorx2, reddoory1),
-                    (reddoorx2, reddoory2),
-                    (reddoorx1, reddoory2)
-                    ])
-                self.reddoor.set_color(1,0,0)
-                self.viewer.add_geom(self.reddoor)
-                
-                reddoorx1 = 0
-                reddoorx2 = 10
-                reddoory1 = screen_height
-                reddoory2 = 0
-                self.reddoor = rendering.FilledPolygon([
-                    (reddoorx1, reddoory1),
-                    (reddoorx2, reddoory1),
-                    (reddoorx2, reddoory2),
-                    (reddoorx1, reddoory2)
-                    ])
-                self.reddoor.set_color(1,0,0)
-                self.viewer.add_geom(self.reddoor)
-                
-                reddoorx1 = 0
-                reddoorx2 = screen_width
-                reddoory1 = 0
-                reddoory2 = 10
-                self.reddoor = rendering.FilledPolygon([
-                    (reddoorx1, reddoory1),
-                    (reddoorx2, reddoory1),
-                    (reddoorx2, reddoory2),
-                    (reddoorx1, reddoory2)
-                    ])
-                self.reddoor.set_color(1,0,0)
-                self.viewer.add_geom(self.reddoor)
-                
-                #greendoor
-                greendoorx1 = screen_width-10
-                greendoorx2 = screen_width
-                greendoory1 = 0
-                greendoory2 = screen_height
-                self.greendoor = rendering.FilledPolygon([
-                    (greendoorx1, greendoory1),
-                    (greendoorx2, greendoory1),
-                    (greendoorx2, greendoory2),
-                    (greendoorx1, greendoory2)
-                    ])
-                self.greendoor.set_color(0,1,0)
-                self.viewer.add_geom(self.greendoor)
-                
-                #agent
+                """ Build low reward sprite """
+                for reward in self.low_reward:
+                    nth, boundary = reward
+                    x1, y1, x2, y2 = self.get_vertices_list(nth, boundary, screen_width, screen_height)
+                    sprite = rendering.FilledPolygon([(x1, y1),(x2, y1),(x2, y2),(x1, y2)])
+                    sprite.set_color(1,0,0)
+                    self.viewer.add_geom(sprite)
+
+                """ Build wall sprite """
+
+                """ Build agent sprite """
                 agentwidth = 20
                 agentheight = 20
                 l,r,t,b = (-agentwidth/2, agentwidth/2, agentheight/2,
@@ -297,7 +335,6 @@ class MultiDimensionalEnv(gym.Env):
                 self.agent = rendering.FilledPolygon([(l,b),(l,t),(r,t),(r,b)])
                 self.agenttrans = rendering.Transform()
                 self.agent.add_attr(self.agenttrans)
-                
                 self.viewer.add_geom(self.agent)
                 
             if self.state is None: return None
