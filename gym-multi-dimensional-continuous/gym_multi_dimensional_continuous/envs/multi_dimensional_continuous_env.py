@@ -4,7 +4,7 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 
-class MultiDimensionalEnv(gym.Env):
+class MultiDimensionalContinuousEnv(gym.Env):
     """
     Description:
         An agent is in a n-cube (n dimension hypercube). The goal is to reach
@@ -74,14 +74,24 @@ class MultiDimensionalEnv(gym.Env):
 #            raise ValueError("Missing descriptors in environement description")
 
         self.n = n_dimensions
+
         self.max_position = 1
         self.max_speed = 0.1
-        self.high = np.array([np.ones((self.n))*self.max_position,
-                              np.ones((self.n))*self.max_speed
-                            ])
-        self.low = -self.high
-        self.action_space = spaces.Discrete(2*self.n+1)
-        self.observation_space = spaces.Box(self.low, self.high, dtype=np.float32)
+        self.high_position = np.array([np.ones((self.n))*self.max_position,
+            np.ones((self.n))*self.max_speed
+            ])
+        self.low_position = -self.high_position
+        self.observation_space = spaces.Box(low=self.low_position,
+                high=self.high_position, dtype=np.float32)
+
+        self.max_action = 1.0
+        self.high_action = np.ones((self.n))*self.max_action
+        self.low_action = -self.high_action
+        self.action_space = spaces.Box(low=self.low_action,
+                high=self.high_action, dtype=np.float32)
+
+        self.power = 0.01
+        
         self.viewer = None
         self.state = None
         self.seed()
@@ -120,32 +130,25 @@ class MultiDimensionalEnv(gym.Env):
         assert self.action_space.contains(action), "%r (%s) invalid" % (
                 action, type(action))
 
-        #action -> (direction,orientation)
-        if action==0:
-            orientation = 1
-            direction = -1
-        else:
-            action-=1
-            if action%2==0:
-                orientation = -1
-            elif action%2==1:
-                orientation = 1
-            direction = action//2
-        
         #maj position and velocity
         position = self.state[0]
         velocity = self.state[1]
-        if direction > -1:
-            velocity[direction] += (orientation)*0.01
-            for direction in range(self.n):
-                if velocity[direction]>0:
-                    velocity[direction] = max(0,velocity[direction]-0.001)
-                else:
-                    velocity[direction] = min(0,velocity[direction]+0.001)
-            velocity[direction] = np.clip(velocity[direction], -self.max_speed, self.max_speed)
-            position += velocity
-            for direction in range(self.n):
-                position[direction] = np.clip(position[direction], -self.max_position, self.max_position)
+        force = np.zeros((len(action),))
+        for d in range(len(action)):
+            force[d] = min(max(action[d], -1.0), 1.0)
+
+        velocity += force*self.power
+        for direction in range(self.n):
+            if velocity[direction]>0:
+                velocity[direction] = max(0,velocity[direction]-0.001)
+            else:
+                velocity[direction] = min(0,velocity[direction]+0.001)
+        velocity[direction] = np.clip(velocity[direction],
+                -self.max_speed, self.max_speed)
+        position += velocity
+        for direction in range(self.n):
+            position[direction] = np.clip(position[direction],
+                    -self.max_position, self.max_position)
 
         high_reward = False
         low_reward = False
