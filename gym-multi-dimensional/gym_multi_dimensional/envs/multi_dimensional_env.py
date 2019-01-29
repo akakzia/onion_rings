@@ -53,7 +53,6 @@ class MultiDimensionalEnv(gym.Env):
 
     Episode Termination:
         Agent find any (n-1)-face
-        Episode length is greater than 100n
     """
 
     metadata = {
