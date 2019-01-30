@@ -90,6 +90,7 @@ class MultiDimensionalEnv(gym.Env):
         """ Keep IDs of dimensions used for environement description """
         self.high_reward = []
         self.low_reward = []
+        self.wall = []
 
         self.load_description(env_description)
 
@@ -105,6 +106,8 @@ class MultiDimensionalEnv(gym.Env):
 
             """ Assign low boundary of nth dimension to low reward """ 
             self.low_reward.append((i, - self.max_position))
+
+            # self.wall.append((i, - self.max_position))
 
         print(self.high_reward)
         print(self.low_reward)
@@ -163,6 +166,10 @@ class MultiDimensionalEnv(gym.Env):
                     low_reward = True
 
         """ Check for wall in n dimensional space """
+        for infos in self.wall:
+            nth, boundary = infos
+            if abs(position[nth] + boundary) >= 2 * self.max_position:
+                velocity[nth] = 0
 
         if high_reward:
             reward = 1
