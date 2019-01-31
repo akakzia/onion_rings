@@ -16,7 +16,7 @@ for i_episode in range(20):
     episode_nb = 200
     done = False
     for t in range(episode_nb):
-        # env.render()
+        env.render()
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
         rb.push(old_observation, action, reward, observation)
