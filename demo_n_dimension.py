@@ -1,11 +1,11 @@
 import gym
-import gym_multi_dimensional_continuous
+import gym_multi_dimensional
 
-id = gym_multi_dimensional_continuous.dynamic_register(n_dimensions=1,
-        env_description={})
+id = gym_multi_dimensional.dynamic_register(n_dimensions=2,
+        env_description={},continuous=True,acceleration=True)
 env = gym.make(id)
 
-for i_episode in range(10):
+for i_episode in range(20):
     observation = env.reset()
     cum_reward=0
     episode_nb = 200

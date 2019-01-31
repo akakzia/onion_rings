@@ -4,7 +4,7 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 
-class MultiDimensionalContinuousEnv(gym.Env):
+class MultiDimensionalEnv(gym.Env):
     """
     Description:
         An agent is in a n-cube (n dimension hypercube). The goal is to reach
@@ -64,7 +64,7 @@ class MultiDimensionalContinuousEnv(gym.Env):
     default_description = { 'high_reward': 1 }
 
 
-    def __init__(self, n_dimensions=1, env_description=default_description):
+    def __init__(self, n_dimensions=1, env_description=default_description,continuous=True,acceleration=True):
 
         """ Sanity checks """
         if n_dimensions <= 0:
@@ -74,23 +74,28 @@ class MultiDimensionalContinuousEnv(gym.Env):
 #            raise ValueError("Missing descriptors in environement description")
 
         self.n = n_dimensions
+        self.continuous = continuous
+        self.acceleration = acceleration
 
         self.max_position = 1
-        self.max_speed = 0.1
-        self.high_position = np.array([np.ones((self.n))*self.max_position,
-            np.ones((self.n))*self.max_speed
-            ])
+        self.high_position = np.ones((self.n))*self.max_position
         self.low_position = -self.high_position
         self.observation_space = spaces.Box(low=self.low_position,
                 high=self.high_position, dtype=np.float32)
 
-        self.max_action = 1.0
-        self.high_action = np.ones((self.n))*self.max_action
-        self.low_action = -self.high_action
-        self.action_space = spaces.Box(low=self.low_action,
-                high=self.high_action, dtype=np.float32)
+        if self.continuous:
+            self.max_action = 1
+            self.high_action = np.ones((self.n))*self.max_action
+            self.low_action = -self.high_action
+            self.action_space = spaces.Box(low=self.low_action,
+                    high=self.high_action, dtype=np.float32)
+        else: #if discrete
+            self.action_space = spaces.Discrete(2*self.n+1)
 
-        self.power = 0.01
+        if self.acceleration:
+            self.power = 0.01
+        else: #if velocity
+            self.power = 0.1
         
         self.viewer = None
         self.state = None
@@ -132,22 +137,53 @@ class MultiDimensionalContinuousEnv(gym.Env):
     def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid" % (
                 action, type(action))
+        
 
-        #maj position and velocity
         position = self.state[0]
         velocity = self.state[1]
-        force = np.zeros((len(action),))
-        for d in range(len(action)):
-            force[d] = min(max(action[d], -1.0), 1.0)
 
-        velocity += force*self.power
+        #update velocity
+        if self.acceleration:
+            if self.continuous:
+                velocity += action*self.power
+            else: #if discrete
+                if action==0:
+                    orientation = 1
+                    direction = -1
+                else:
+                    action-=1
+                    if action%2==0:
+                        orientation = -1
+                    elif action%2==1:
+                        orientation = 1
+                    direction = action//2
+                if direction > -1:
+                    velocity[direction] += (orientation)*self.power
+        else: #if velocity
+            if self.continuous:
+                velocity = action*0.1
+            else: #if discrete
+                if action==0:
+                    orientation = 1
+                    direction = -1
+                else:
+                    action-=1
+                    if action%2==0:
+                        orientation = -1
+                    elif action%2==1:
+                        orientation = 1
+                    direction = action//2
+                if direction > -1:
+                    velocity[direction] = (orientation)*self.power
+
+        #friction
         for direction in range(self.n):
             if velocity[direction]>0:
                 velocity[direction] = max(0,velocity[direction]-0.001)
             else:
                 velocity[direction] = min(0,velocity[direction]+0.001)
-        velocity[direction] = np.clip(velocity[direction],
-                -self.max_speed, self.max_speed)
+        
+        #update position
         position += velocity
         for direction in range(self.n):
             position[direction] = np.clip(position[direction],
@@ -176,16 +212,17 @@ class MultiDimensionalContinuousEnv(gym.Env):
 
         if high_reward:
             reward = 1
-            info = "green door"
+            info = "high reward"
         elif low_reward:
             reward =  0.1
-            info = "red door"
+            info = "low reward"
         else:
             reward = -0.01
             info = ""
+        done = high_reward or low_reward
 
         self.state = (position,velocity)
-        return np.array(self.state), reward, high_reward or low_reward, info
+        return np.array(self.state), reward, done, info
 
 
     def reset(self):
@@ -193,7 +230,8 @@ class MultiDimensionalContinuousEnv(gym.Env):
             np.zeros((self.n)),
             np.zeros((self.n))
             ])
-        self.state[0,0] = self.np_random.uniform(low=-0.6, high=-0.4)
+        for i in range(self.state.shape[0]):
+                self.state[0,i] = self.np_random.uniform(low=-1, high=1)
         return np.array(self.state)
 
 
