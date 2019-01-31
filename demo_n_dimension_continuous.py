@@ -1,7 +1,7 @@
 import gym
 import gym_multi_dimensional_continuous
 
-id = gym_multi_dimensional_continuous.dynamic_register(n_dimensions=2,
+id = gym_multi_dimensional_continuous.dynamic_register(n_dimensions=1,
         env_description={})
 env = gym.make(id)
 
