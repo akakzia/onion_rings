@@ -232,7 +232,7 @@ class MultiDimensionalEnv(gym.Env):
             ])
         for i in range(self.state.shape[0]):
                 self.state[0,i] = self.np_random.uniform(low=-1, high=1)
-        return np.array(self.state)
+        return self.state
 
 
     def get_vertices_list(self, nth, boundary, width, height, line=0):

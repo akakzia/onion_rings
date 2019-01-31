@@ -18,11 +18,11 @@ action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=floa
 
 model = DDPG(MlpPolicy, env, verbose=1, param_noise=param_noise, action_noise=action_noise)
 model.learn(total_timesteps=50000)
-model.save("ddpg_n_dimension")
+model.save("models/ddpg_n_dimension")
 
 del model # remove to demonstrate saving and loading
 
-model = DDPG.load("ddpg_n_dimension")
+model = DDPG.load("models/ddpg_n_dimension")
 
 obs = env.reset()
 while True:
