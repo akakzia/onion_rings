@@ -89,6 +89,7 @@ class MultiDimensionalEnv(gym.Env):
             self.low_action = -self.high_action
             self.action_space = spaces.Box(low=self.low_action,
                     high=self.high_action, dtype=np.float32)
+
         else: #if discrete
             self.action_space = spaces.Discrete(2*self.n+1)
 
@@ -221,17 +222,15 @@ class MultiDimensionalEnv(gym.Env):
             info = ""
         done = high_reward or low_reward
 
-        self.state = (position,velocity)
+        self.state = [position,velocity]
         return np.array(self.state), reward, done, info
 
 
     def reset(self):
         self.state = np.array([
-            np.zeros((self.n)),
+            np.random.uniform(low=-1, high=1, size=self.n),
             np.zeros((self.n))
             ])
-        for i in range(self.state.shape[0]):
-                self.state[0,i] = self.np_random.uniform(low=-1, high=1)
         return self.state
 
 
