@@ -20,6 +20,10 @@ class ReplayBuffer():
         return len(self.buffer)
 
     def uniform_sample(self, batch_size=1):
+
+        if batch_size > len(self.buffer):
+            return np.array([])
+
         indices = np.random.randint(0, len(self.buffer), batch_size)
         return np.array([self.buffer[i] for i in indices])
 
