@@ -98,6 +98,7 @@ class MultiDimensionalEnv(gym.Env):
         else: #if velocity
             self.power = 0.1
         self.friction = 0.001
+        self.accel = np.zeros((self.n))
 
         self.high_reward = 1
         self.low_reward = 0.1
@@ -151,7 +152,8 @@ class MultiDimensionalEnv(gym.Env):
         #update velocity
         if self.acceleration:
             if self.continuous:
-                velocity += action*self.power
+                self.accel = action*self.power
+                velocity += self.accel
             else: #if discrete
                 if action==0:
                     orientation = 1
@@ -164,10 +166,12 @@ class MultiDimensionalEnv(gym.Env):
                         orientation = 1
                     direction = action//2
                 if direction > -1:
-                    velocity[direction] += (orientation)*self.power
+                    self.accel = (orientation)*self.power
+                    velocity[direction] += self.accel
         else: #if velocity
             if self.continuous:
-                velocity = action*self.power
+                self.accel = action*self.power
+                velocity = self.accel 
             else: #if discrete
                 if action==0:
                     orientation = 1
@@ -180,7 +184,8 @@ class MultiDimensionalEnv(gym.Env):
                         orientation = 1
                     direction = action//2
                 if direction > -1:
-                    velocity[direction] = (orientation)*self.power
+                    self.accel = (orientation)*self.power
+                    velocity[direction] = self.accel
 
         #friction
         for direction in range(self.n):
@@ -315,15 +320,19 @@ class MultiDimensionalEnv(gym.Env):
                 self.viewer.add_geom(self.track)
 
                 """ Agent sprite """
-                agentwidth = 20
-                agentheight = 20
                 agenty = tracky
-                l,r,t,b = (-agentwidth/2, agentwidth/2, agentheight/2,
-                        -agentheight/2)
-                self.agent = rendering.FilledPolygon([(l,b),(l,t),(r,t),(r,b)])
+                self.agent = rendering.make_circle(radius=15,res=30,filled=True)
                 self.agenttrans = rendering.Transform()
                 self.agent.add_attr(self.agenttrans)
                 self.viewer.add_geom(self.agent)
+                self.agentline = rendering.FilledPolygon([
+                    (0, 0),(0, 2),(15, 2),(15, -2),(0,-2)
+                    ])
+                self.agentline.set_color(1,1,1)
+                self.agentlinetrans = rendering.Transform()
+                self.agentline.add_attr(self.agentlinetrans)
+                self.viewer.add_geom(self.agentline)
+
 
                 """ Build high reward sprite """
                 for reward in self.high_reward_position:
@@ -347,8 +356,12 @@ class MultiDimensionalEnv(gym.Env):
                 return None
 
             pos = self.state[0]
+            vel = self.state[1]
             agentx = (pos+self.max_position)*scale
             self.agenttrans.set_translation(agentx,agenty)
+            self.agentlinetrans.set_translation(agentx,agenty)
+            self.agentlinetrans.set_rotation(math.atan2(0,vel))
+
 
         elif self.n==2:
             screen_width = 600
@@ -380,20 +393,26 @@ class MultiDimensionalEnv(gym.Env):
                 """ Build wall sprite """
 
                 """ Build agent sprite """
-                agentwidth = 20
-                agentheight = 20
-                l,r,t,b = (-agentwidth/2, agentwidth/2, agentheight/2,
-                        -agentheight/2)
-                self.agent = rendering.FilledPolygon([(l,b),(l,t),(r,t),(r,b)])
+                self.agent = rendering.make_circle(radius=15,res=30,filled=True)
                 self.agenttrans = rendering.Transform()
                 self.agent.add_attr(self.agenttrans)
                 self.viewer.add_geom(self.agent)
+                self.agentline = rendering.FilledPolygon([
+                    (0, 0),(0, 2),(15, 2),(15, -2),(0,-2)
+                    ])
+                self.agentline.set_color(1,1,1)
+                self.agentlinetrans = rendering.Transform()
+                self.agentline.add_attr(self.agentlinetrans)
+                self.viewer.add_geom(self.agentline)
                 
             if self.state is None: return None
 
             pos = self.state[0]
+            vel = self.state[1]
             agent_position = (pos+self.max_position)*scale
             self.agenttrans.set_translation(agent_position[0],agent_position[1])
+            self.agentlinetrans.set_translation(agent_position[0],agent_position[1])
+            self.agentlinetrans.set_rotation(math.atan2(vel[1],vel[0]))
 
         return self.viewer.render(return_rgb_array = mode=='rgb_array')
 
