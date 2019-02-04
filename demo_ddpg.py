@@ -11,6 +11,8 @@ id = gym_multi_dimensional.dynamic_register(n_dimensions=2, env_description={})
 env = gym.make(id)
 env = DummyVecEnv([lambda: env])
 
+print(env.reset())
+
 # the noise objects for DDPG
 n_actions = env.action_space.shape[-1]
 param_noise = None
