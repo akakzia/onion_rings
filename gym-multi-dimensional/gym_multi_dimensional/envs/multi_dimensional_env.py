@@ -97,6 +97,11 @@ class MultiDimensionalEnv(gym.Env):
             self.power = 0.01
         else: #if velocity
             self.power = 0.1
+        self.friction = 0.001
+
+        self.high_reward = 1
+        self.low_reward = 0.1
+        self.action_cost = 0.01
         
         self.viewer = None
         self.state = None
@@ -104,9 +109,9 @@ class MultiDimensionalEnv(gym.Env):
         self.reset()
 
         """ Keep IDs of dimensions used for environement description """
-        self.high_reward = []
-        self.low_reward = []
-        self.wall = []
+        self.high_reward_position = []
+        self.low_reward_position = []
+        self.wall_position = []
 
         self.load_description(env_description)
 
@@ -118,15 +123,15 @@ class MultiDimensionalEnv(gym.Env):
         for i in range(self.n):
 
             """ Assign high boundary of nth dimension to high reward """
-            self.high_reward.append((i, self.max_position))
+            self.high_reward_position.append((i, self.max_position))
 
             """ Assign low boundary of nth dimension to low reward """ 
-            self.low_reward.append((i, - self.max_position))
+            self.low_reward_position.append((i, - self.max_position))
 
-            # self.wall.append((i, - self.max_position))
+            # self.wall_position.append((i, - self.max_position))
 
-        print(self.high_reward)
-        print(self.low_reward)
+        print(self.high_reward_position)
+        print(self.low_reward_position)
 
 
 
@@ -162,7 +167,7 @@ class MultiDimensionalEnv(gym.Env):
                     velocity[direction] += (orientation)*self.power
         else: #if velocity
             if self.continuous:
-                velocity = action*0.1
+                velocity = action*self.power
             else: #if discrete
                 if action==0:
                     orientation = 1
@@ -180,9 +185,9 @@ class MultiDimensionalEnv(gym.Env):
         #friction
         for direction in range(self.n):
             if velocity[direction]>0:
-                velocity[direction] = max(0,velocity[direction]-0.001)
+                velocity[direction] = max(0,velocity[direction]-self.friction)
             else:
-                velocity[direction] = min(0,velocity[direction]+0.001)
+                velocity[direction] = min(0,velocity[direction]+self.friction)
         
         #update position
         position += velocity
@@ -190,37 +195,37 @@ class MultiDimensionalEnv(gym.Env):
             position[direction] = np.clip(position[direction],
                     -self.max_position, self.max_position)
 
-        high_reward = False
-        low_reward = False
+        reach_high_reward = False
+        reach_low_reward = False
 
         """ Check for high reward in n dimensional space """
-        for infos in self.high_reward:
+        for infos in self.high_reward_position:
             nth, boundary = infos
             if abs(position[nth] + boundary) >= 2 * self.max_position:
-                    high_reward = True
+                    reach_high_reward = True
 
         """ Check for low reward in n dimensional space """
-        for infos in self.low_reward:
+        for infos in self.low_reward_position:
             nth, boundary = infos
             if abs(position[nth] + boundary) >= 2 * self.max_position:
-                    low_reward = True
+                    reach_low_reward = True
 
         """ Check for wall in n dimensional space """
-        for infos in self.wall:
+        for infos in self.wall_position:
             nth, boundary = infos
             if abs(position[nth] + boundary) >= 2 * self.max_position:
                 velocity[nth] = 0
 
-        if high_reward:
-            reward = 1
+        if reach_high_reward:
+            reward = self.high_reward
             info = "high reward"
-        elif low_reward:
-            reward =  0.1
+        elif reach_low_reward:
+            reward =  self.low_reward
             info = "low reward"
         else:
-            reward = -0.01
+            reward = -self.action_cost
             info = ""
-        done = high_reward or low_reward
+        done = reach_high_reward or reach_low_reward
 
         self.state = [position,velocity]
         return np.array(self.state), reward, done, info
@@ -228,7 +233,8 @@ class MultiDimensionalEnv(gym.Env):
 
     def reset(self):
         self.state = np.array([
-            np.random.uniform(low=-1, high=1, size=self.n),
+            np.random.uniform(low=-self.max_position, high=self.max_position,
+                size=self.n),
             np.zeros((self.n))
             ])
         return self.state
@@ -320,7 +326,7 @@ class MultiDimensionalEnv(gym.Env):
                 self.viewer.add_geom(self.agent)
 
                 """ Build high reward sprite """
-                for reward in self.high_reward:
+                for reward in self.high_reward_position:
                     nth, boundary = reward
                     x1, y1, x2, y2 = self.get_vertices_list(nth, boundary, screen_width, screen_height, line=tracky)
                     sprite = rendering.FilledPolygon([(x1, y1),(x2, y1),(x2, y2),(x1, y2)])
@@ -328,7 +334,7 @@ class MultiDimensionalEnv(gym.Env):
                     self.viewer.add_geom(sprite)
 
                 """ Build low reward sprite """
-                for reward in self.low_reward:
+                for reward in self.low_reward_position:
                     nth, boundary = reward
                     x1, y1, x2, y2 = self.get_vertices_list(nth, boundary, screen_width, screen_height, line=tracky)
                     sprite = rendering.FilledPolygon([(x1, y1),(x2, y1),(x2, y2),(x1, y2)])
@@ -356,7 +362,7 @@ class MultiDimensionalEnv(gym.Env):
                 self.viewer = rendering.Viewer(screen_width, screen_height)
                 
                 """ Build high reward sprite """
-                for reward in self.high_reward:
+                for reward in self.high_reward_position:
                     nth, boundary = reward
                     x1, y1, x2, y2 = self.get_vertices_list(nth, boundary, screen_width, screen_height)
                     sprite = rendering.FilledPolygon([(x1, y1),(x2, y1),(x2, y2),(x1, y2)])
@@ -364,7 +370,7 @@ class MultiDimensionalEnv(gym.Env):
                     self.viewer.add_geom(sprite)
 
                 """ Build low reward sprite """
-                for reward in self.low_reward:
+                for reward in self.low_reward_position:
                     nth, boundary = reward
                     x1, y1, x2, y2 = self.get_vertices_list(nth, boundary, screen_width, screen_height)
                     sprite = rendering.FilledPolygon([(x1, y1),(x2, y1),(x2, y2),(x1, y2)])

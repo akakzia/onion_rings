@@ -12,7 +12,7 @@ old_observation = None
 
 for i_episode in range(20):
     old_observation = env.reset()
-    cum_reward=0
+    cum_reward = 0
     episode_nb = 200
     done = False
     for t in range(episode_nb):
