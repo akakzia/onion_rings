@@ -78,7 +78,10 @@ class MultiDimensionalEnv(gym.Env):
         self.acceleration = acceleration
 
         self.max_position = 1
-        self.high_position = np.ones((self.n))*self.max_position
+        self.high_position = np.array([
+            np.ones((self.n))*self.max_position,
+            np.ones((self.n))*float('inf')
+            ])
         self.low_position = -self.high_position
         self.observation_space = spaces.Box(low=self.low_position,
                 high=self.high_position, dtype=np.float32)
