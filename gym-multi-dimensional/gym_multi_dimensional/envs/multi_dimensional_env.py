@@ -107,6 +107,8 @@ class MultiDimensionalEnv(gym.Env):
         self.low_reward = 0.1
         self.action_cost = 0.01
         
+        self._max_episode_steps = 100
+        
         self.viewer = None
         self.state = None
         self.seed()
