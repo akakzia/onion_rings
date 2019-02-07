@@ -151,8 +151,8 @@ class MultiDimensionalEnv(gym.Env):
                 action, type(action))
         
 
-        position = self.state[0]
-        velocity = self.state[1]
+        position = self.state[:self.n]
+        velocity = self.state[self.n:]
 
         #update velocity
         if self.acceleration:
@@ -237,16 +237,13 @@ class MultiDimensionalEnv(gym.Env):
             info = ""
         done = reach_high_reward or reach_low_reward
 
-        self.state = [position,velocity]
+        self.state = np.concatenate((position, velocity))
         return np.array(self.state), reward, done, info
 
 
     def reset(self):
-        self.state = np.array([
-            np.random.uniform(low=-self.max_position, high=self.max_position,
-                size=self.n),
-            np.zeros((self.n))
-            ])
+        self.state = np.zeros((2 * self.n))
+        self.state[:self.n] = np.random.uniform(low=-self.max_position, high=self.max_position, size=self.n)
         return self.state
 
 

@@ -1,9 +1,9 @@
 import gym
 import gym_multi_dimensional
-from gym_multi_dimensional.visualization import visualization_2d as v
+from gym_multi_dimensional.visualization import vis_2d
 import replay_buffer
 
-rb = replay_buffer.ReplayBuffer(1000)
+rb = replay_buffer.ReplayBuffer(5000)
 
 id = gym_multi_dimensional.dynamic_register(n_dimensions=2,
         env_description={},continuous=True,acceleration=True)
@@ -11,7 +11,7 @@ env = gym.make(id)
 
 old_observation = None
 
-for i_episode in range(50):
+for i_episode in range(100):
     old_observation = env.reset()
     cum_reward=0
     episode_nb = 200
@@ -31,6 +31,6 @@ for i_episode in range(50):
         print("Episode not finished after {} timesteps,final reward : {}".format(episode_nb,cum_reward))
 
 
-v.visualize(rb)
+vis_2d.visualize(rb)
 
 env.close()

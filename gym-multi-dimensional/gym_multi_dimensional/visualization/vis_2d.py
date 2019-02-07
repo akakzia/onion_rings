@@ -3,23 +3,19 @@ import matplotlib.pyplot as plt
 
 def visualize(rb):
 
-    pos_init = [exp[0][0] for exp in rb]
-    pos_final = [exp[4][0] for exp in rb]
-
     red = 1.0
     green = 0
     blue = 0
-
     step = 1.0 / (len(rb) / 2)
-    
+
     fig, ax = plt.subplots(1)
     plt.set_cmap('RdYlGn')
 
-    for i in range(len(pos_init)):
-        x_pos = pos_init[i][0]
-        y_pos = pos_init[i][1]
-        x_vel = pos_final[i][0] - x_pos
-        y_vel = pos_final[i][1] - y_pos
+    for exp in rb:
+        x_pos = exp[0][0]
+        y_pos = exp[0][1]
+        x_vel = exp[4][0] - x_pos
+        y_vel = exp[4][1] - y_pos
 
         color = matplotlib.colors.to_hex((red, green, blue))
         plt.plot(x_pos, y_pos, '.', color=color)
