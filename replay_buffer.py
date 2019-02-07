@@ -8,7 +8,7 @@ class ReplayBuffer():
         self.buffer_size = buffer_size
         self.buffer = collections.deque(maxlen=self.buffer_size)
 
-    def push(self, state, action, reward, new_state, overwrite=True):
+    def push(self, state, action, reward, done, new_state, overwrite=True):
 
         """ If maximum buffer size reached , remove old experience """
         if len(self.buffer) == self.buffer_size:
@@ -18,7 +18,7 @@ class ReplayBuffer():
         new_state = copy.deepcopy(new_state)
 
         """ Add new experience """
-        self.buffer.append((state, action, reward, new_state))
+        self.buffer.append((state, action, reward, done, new_state))
 
     def __len__(self):
         return len(self.buffer)

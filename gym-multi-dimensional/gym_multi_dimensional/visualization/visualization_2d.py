@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 def visualize(rb):
 
     pos_init = [exp[0][0] for exp in rb]
-    pos_final = [exp[3][0] for exp in rb]
+    pos_final = [exp[4][0] for exp in rb]
 
     red = 1.0
     green = 0
