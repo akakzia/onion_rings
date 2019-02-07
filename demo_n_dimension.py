@@ -1,6 +1,7 @@
 import gym
 import gym_multi_dimensional
 import replay_buffer
+from visualisation import visualize
 
 rb = replay_buffer.ReplayBuffer(1000)
 
@@ -10,13 +11,13 @@ env = gym.make(id)
 
 old_observation = None
 
-for i_episode in range(100):
+for i_episode in range(50):
     old_observation = env.reset()
     cum_reward=0
     episode_nb = 200
     done = False
     for t in range(episode_nb):
-        env.render()
+        #env.render()
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
         rb.push(old_observation, action, reward, observation)
@@ -29,6 +30,7 @@ for i_episode in range(100):
     if not done:
         print("Episode not finished after {} timesteps,final reward : {}".format(episode_nb,cum_reward))
 
-rb.visualize()
+
+visualize(rb)
 
 env.close()
