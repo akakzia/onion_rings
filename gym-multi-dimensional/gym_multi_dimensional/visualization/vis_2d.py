@@ -12,10 +12,10 @@ def visualize(rb):
     plt.set_cmap('RdYlGn')
 
     for exp in rb:
-        x_pos = exp[0][0]
-        y_pos = exp[0][1]
-        x_vel = exp[4][0] - x_pos
-        y_vel = exp[4][1] - y_pos
+        x_pos , y_pos = exp[0][0]
+        x_vel , y_vel = exp[4][0]
+        x_vel -= x_pos
+        y_vel -= y_pos
 
         color = matplotlib.colors.to_hex((red, green, blue))
         plt.plot(x_pos, y_pos, '.', color=color)
