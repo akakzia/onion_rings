@@ -100,15 +100,13 @@ class MultiDimensionalEnv(gym.Env):
             self.power = 0.01
         else: #if velocity
             self.power = 0.1
+
         self.friction = 0.001
         self.accel = np.zeros((self.n))
-
         self.high_reward = 1
         self.low_reward = 0.1
         self.action_cost = 0.01
-        
-        self._max_episode_steps = 100
-        
+        self._max_episode_steps = 1000
         self.viewer = None
         self.state = None
         self.seed()
@@ -123,7 +121,7 @@ class MultiDimensionalEnv(gym.Env):
 
     def _validate_env_description(self, env_description):
         return True
-    
+
     def load_description(self, env_description):
 
         for i in range(self.n):
