@@ -135,9 +135,6 @@ class MultiDimensionalEnv(gym.Env):
 
             # self.wall_position.append((i, - self.max_position))
 
-        print(self.high_reward_position)
-        print(self.low_reward_position)
-
 
 
     def seed(self,seed=None):
