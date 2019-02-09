@@ -59,3 +59,24 @@ def visualize_Q(q_values):
     ax.add_patch(plt.Rectangle((-1, -1), 2, 2, angle=0.0, facecolor='none', edgecolor='blue', linewidth=1))
     plt.show()
 
+def visualize_Q2(q_values):
+
+    qs = q_values[:,0]
+    qs = qs + np.max(qs)
+    qs = qs - np.min(qs)
+    qs = qs/np.max(qs) #normalisation
+    states = q_values[:,1:]
+
+    red = 1.0
+    green = 1.0
+    blue = 0
+
+    fig, ax = plt.subplots(1)
+    plt.set_cmap('RdYlGn')
+
+    #color = matplotlib.colors.to_hex((red*(1-q), green*q, blue))
+    plt.tricontourf(states[:,0], states[:,1], qs)
+
+    ax.add_patch(plt.Rectangle((-1, -1), 2, 2, angle=0.0, facecolor='none', edgecolor='blue', linewidth=1))
+    plt.show()
+
