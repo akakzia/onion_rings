@@ -107,6 +107,7 @@ class MultiDimensionalEnv(gym.Env):
         self.low_reward = 0.1
         self.action_cost = 0.01
         self._max_episode_steps = 1000
+        self._current_episode_step = 0
         self.viewer = None
         self.state = None
         self.seed()
@@ -233,7 +234,10 @@ class MultiDimensionalEnv(gym.Env):
         else:
             reward = -self.action_cost
             info = ""
-        done = reach_high_reward or reach_low_reward
+
+        self._current_episode_step += 1
+
+        done = reach_high_reward or reach_low_reward or self._current_episode_step >= self._max_episode_steps
 
         self.state = [position, velocity]
         return np.array(self.state), reward, done, info
@@ -242,6 +246,7 @@ class MultiDimensionalEnv(gym.Env):
     def reset(self):
         self.state = np.zeros((2, self.n))
         self.state[0] = np.random.uniform(low=-self.max_position, high=self.max_position, size=self.n)
+        self._current_episode_step = 0
         return self.state
 
 
