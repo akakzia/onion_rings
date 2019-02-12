@@ -153,10 +153,10 @@ class MultiDimensionalEnv(gym.Env):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
         position = self.state[0]
-        velocity = self.state[1]
 
         #update velocity
         if self.acceleration:
+            velocity = self.state[1]
             if self.continuous:
                 self.accel = action*self.power
                 velocity += self.accel
@@ -176,8 +176,7 @@ class MultiDimensionalEnv(gym.Env):
                     velocity[direction] += self.accel
         else: #if velocity
             if self.continuous:
-                self.accel = action*self.power
-                velocity = self.accel 
+                velocity = action
             else: #if discrete
                 if action==0:
                     orientation = 1
@@ -194,11 +193,12 @@ class MultiDimensionalEnv(gym.Env):
                     velocity[direction] = self.accel
 
         #friction
-        for direction in range(self.n):
-            if velocity[direction]>0:
-                velocity[direction] = max(0,velocity[direction]-self.friction)
-            else:
-                velocity[direction] = min(0,velocity[direction]+self.friction)
+        if self.acceleration:
+            for direction in range(self.n):
+                if velocity[direction]>0:
+                    velocity[direction] = max(0,velocity[direction]-self.friction)
+                else:
+                    velocity[direction] = min(0,velocity[direction]+self.friction)
 
         #update position
         position += velocity
