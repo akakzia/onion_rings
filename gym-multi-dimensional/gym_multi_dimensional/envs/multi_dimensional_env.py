@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import gym
+import copy
 from gym import spaces
 from gym.utils import seeding
 
@@ -94,7 +95,7 @@ class MultiDimensionalEnv(gym.Env):
                 high=self.high_observation, dtype=np.float32)
 
         if self.continuous:
-            self.max_action = 1
+            self.max_action = 0.1
             self.high_action = np.ones((self.n))*self.max_action
             self.low_action = -self.high_action
             self.action_space = spaces.Box(low=self.low_action,
@@ -152,10 +153,9 @@ class MultiDimensionalEnv(gym.Env):
     def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
-        position = self.state[0]
-
         #update velocity
         if self.acceleration:
+            position = self.state[0]
             velocity = self.state[1]
             if self.continuous:
                 self.accel = action*self.power
@@ -175,8 +175,9 @@ class MultiDimensionalEnv(gym.Env):
                     self.accel = (orientation)*self.power
                     velocity[direction] += self.accel
         else: #if velocity
+            position = self.state
             if self.continuous:
-                velocity = action
+                velocity = copy.deepcopy(action)
             else: #if discrete
                 if action==0:
                     orientation = 1
@@ -202,6 +203,7 @@ class MultiDimensionalEnv(gym.Env):
 
         #update position
         position += velocity
+
         for direction in range(self.n):
             position[direction] = np.clip(position[direction],
                     -self.max_position, self.max_position)
@@ -241,21 +243,24 @@ class MultiDimensionalEnv(gym.Env):
 
         done = reach_high_reward or reach_low_reward or self._current_episode_step >= self._max_episode_steps
 
-        self.state = [position]
+        self.state = position
 
         if self.acceleration:
-            self.state = self.state + [velocity]
+            self.state = [self.state] + [velocity]
 
         return np.array(self.state), reward, done, info
 
 
     def reset(self):
+
         if self.acceleration:
             self.state = np.zeros((2, self.n))
             self.state[0] = np.random.uniform(low=-self.max_position, high=self.max_position, size=self.n)
         else:
-            self.state = np.zeros((1, self.n))
+            self.state = np.random.uniform(low=-self.max_position, high=self.max_position, size=self.n)
+
         self._current_episode_step = 0
+
         return self.state
 
 

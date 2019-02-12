@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-def visualize_RB(rb):
+def visualize_RB(rb, acceleration=False):
 
     red = 1.0
     green = 0
@@ -13,12 +13,19 @@ def visualize_RB(rb):
     plt.set_cmap('RdYlGn')
 
     for exp in rb:
-        x_pos , y_pos = exp[0][0]
-        x_vel , y_vel = exp[4][0]
+
+        if acceleration is True:
+            x_pos, y_pos = exp[0][0]
+            x_vel, y_vel = exp[4][0]
+        else:
+            x_pos, y_pos = exp[0]
+            x_vel, y_vel = exp[4]
+
         x_vel -= x_pos
         y_vel -= y_pos
 
         color = matplotlib.colors.to_hex((red, green, blue))
+
         plt.plot(x_pos, y_pos, '.', color=color)
         plt.arrow(x_pos, y_pos, x_vel, y_vel, color="blue", width=0.001, head_width=0.008)
 
