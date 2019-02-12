@@ -78,11 +78,18 @@ class MultiDimensionalEnv(gym.Env):
         self.acceleration = acceleration
 
         self.max_position = 1
-        self.high_observation = np.array([
-            np.ones((self.n))*self.max_position,
-            np.ones((self.n))*float('inf')
-            ])
+
+        if self.acceleration:
+            self.high_observation = np.array([
+                np.ones((self.n))*self.max_position,
+                np.ones((self.n))*float('inf')
+                ])
+
+        else:
+            self.high_observation = np.array([np.ones((self.n))*self.max_position])
+
         self.low_observation = -self.high_observation
+
         self.observation_space = spaces.Box(low=self.low_observation,
                 high=self.high_observation, dtype=np.float32)
 
@@ -192,7 +199,7 @@ class MultiDimensionalEnv(gym.Env):
                 velocity[direction] = max(0,velocity[direction]-self.friction)
             else:
                 velocity[direction] = min(0,velocity[direction]+self.friction)
-        
+
         #update position
         position += velocity
         for direction in range(self.n):
@@ -234,13 +241,20 @@ class MultiDimensionalEnv(gym.Env):
 
         done = reach_high_reward or reach_low_reward or self._current_episode_step >= self._max_episode_steps
 
-        self.state = [position, velocity]
+        self.state = [position]
+
+        if self.acceleration:
+            self.state = self.state + [velocity]
+
         return np.array(self.state), reward, done, info
 
 
     def reset(self):
-        self.state = np.zeros((2, self.n))
-        self.state[0] = np.random.uniform(low=-self.max_position, high=self.max_position, size=self.n)
+        if self.acceleration:
+            self.state = np.zeros((2, self.n))
+            self.state[0] = np.random.uniform(low=-self.max_position, high=self.max_position, size=self.n)
+        else:
+            self.state = np.zeros((1, self.n))
         self._current_episode_step = 0
         return self.state
 
