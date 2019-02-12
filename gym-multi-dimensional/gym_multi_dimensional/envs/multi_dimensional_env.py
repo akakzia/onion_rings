@@ -143,9 +143,7 @@ class MultiDimensionalEnv(gym.Env):
 
 
     def step(self, action):
-        assert self.action_space.contains(action), "%r (%s) invalid" % (
-                action, type(action))
-        
+        assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
         position = self.state[0]
         velocity = self.state[1]
@@ -226,10 +224,10 @@ class MultiDimensionalEnv(gym.Env):
             reward = self.high_reward
             info = "high reward"
         elif reach_low_reward:
-            reward =  self.low_reward
+            reward = self.low_reward
             info = "low reward"
         else:
-            reward = -self.action_cost
+            reward = 0
             info = ""
 
         self._current_episode_step += 1
