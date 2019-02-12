@@ -150,56 +150,81 @@ class MultiDimensionalEnv(gym.Env):
         return [seed]
 
 
+    def _discrete_velocity_step(self, action):
+        if action==0:
+            orientation = 1
+            direction = -1
+
+        else:
+            action-=1
+            if action%2==0:
+                orientation = -1
+            elif action%2==1:
+                orientation = 1
+            direction = action//2
+
+        if direction > -1:
+            self.accel = (orientation)*self.power
+            velocity[direction] = self.accel
+
+        return self.state, velocity
+
+    def _continuous_velocity_step(self, action):
+        return self.state, action
+
+    def _discrete_acceleration_step(self, action):
+        position, velocity = self.state
+
+        if action==0:
+            orientation = 1
+            direction = -1
+
+        else:
+            action-=1
+            if action%2==0:
+                orientation = -1
+            elif action%2==1:
+                orientation = 1
+            direction = action//2
+
+        if direction > -1:
+            self.accel = (orientation)*self.power
+            velocity[direction] += self.accel
+
+        velocity = self._apply_friction(velocity)
+
+        return position, velocity
+
+    def _continuous_acceleration_step(self, action):
+        position, velocity = self.state
+        self.accel = action * self.power
+        velocity += self.accel
+
+        #velocity = self._apply_friction(velocity)
+
+        return position, velocity
+
+    def _apply_friction(self, velocity):
+        for direction in range(self.n):
+            if velocity[direction]>0:
+                velocity[direction] = max(0,velocity[direction]-self.friction)
+            else:
+                velocity[direction] = min(0,velocity[direction]+self.friction)
+        return velocity
+
     def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
-        #update velocity
         if self.acceleration:
-            position = self.state[0]
-            velocity = self.state[1]
             if self.continuous:
-                self.accel = action*self.power
-                velocity += self.accel
-            else: #if discrete
-                if action==0:
-                    orientation = 1
-                    direction = -1
-                else:
-                    action-=1
-                    if action%2==0:
-                        orientation = -1
-                    elif action%2==1:
-                        orientation = 1
-                    direction = action//2
-                if direction > -1:
-                    self.accel = (orientation)*self.power
-                    velocity[direction] += self.accel
-        else: #if velocity
-            position = self.state
+                position, velocity = self._continuous_acceleration_step(action)
+            else:
+                position, velocity = self._discrete_acceleration_step(action)
+        else:
             if self.continuous:
-                velocity = copy.deepcopy(action)
-            else: #if discrete
-                if action==0:
-                    orientation = 1
-                    direction = -1
-                else:
-                    action-=1
-                    if action%2==0:
-                        orientation = -1
-                    elif action%2==1:
-                        orientation = 1
-                    direction = action//2
-                if direction > -1:
-                    self.accel = (orientation)*self.power
-                    velocity[direction] = self.accel
-
-        #friction
-        if self.acceleration:
-            for direction in range(self.n):
-                if velocity[direction]>0:
-                    velocity[direction] = max(0,velocity[direction]-self.friction)
-                else:
-                    velocity[direction] = min(0,velocity[direction]+self.friction)
+                position, velocity = self._continuous_velocity_step(action)
+            else:
+                position, velocity = self._discrete_velocity_step(action)
 
         #update position
         position += velocity
