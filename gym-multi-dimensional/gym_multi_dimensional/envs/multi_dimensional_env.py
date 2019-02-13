@@ -81,14 +81,14 @@ class MultiDimensionalEnv(gym.Env):
         self.max_position = 1
 
         if self.acceleration:
-            self.high_observation = np.array([
+            self.high_observation = np.r_[
                 np.ones((self.n))*self.max_position,
                 np.ones((self.n))*float('inf')
-                ])
-
+                ]
+        
         else:
-            self.high_observation = np.array([np.ones((self.n))*self.max_position])
-
+            self.high_observation = np.ones((self.n))*self.max_position
+        
         self.low_observation = -self.high_observation
 
         self.observation_space = spaces.Box(low=self.low_observation,
@@ -110,12 +110,13 @@ class MultiDimensionalEnv(gym.Env):
             self.power = 0.1
 
         self.friction = 0.001
-        self.accel = np.zeros((self.n))
         self.high_reward = 1
         self.low_reward = 0.1
         self.action_cost = 0.01
         self._max_episode_steps = 1000
         self._current_episode_step = 0
+        self.position = None
+        self.velocity = None
         self.viewer = None
         self.state = None
         self.seed()
@@ -164,8 +165,7 @@ class MultiDimensionalEnv(gym.Env):
             direction = action//2
 
         if direction > -1:
-            self.accel = (orientation)*self.power
-            velocity[direction] = self.accel
+            velocity[direction] = (orientation)*self.power
 
         return self.state, velocity
 
@@ -173,7 +173,8 @@ class MultiDimensionalEnv(gym.Env):
         return self.state, action
 
     def _discrete_acceleration_step(self, action):
-        position, velocity = self.state
+        position = self.state[:self.state.shape[0]//2]
+        velocity = self.state[self.state.shape[0]//2:]
 
         if action==0:
             orientation = 1
@@ -188,19 +189,19 @@ class MultiDimensionalEnv(gym.Env):
             direction = action//2
 
         if direction > -1:
-            self.accel = (orientation)*self.power
-            velocity[direction] += self.accel
+            accel = (orientation)*self.power
+            velocity[direction] += accel
 
         velocity = self._apply_friction(velocity)
-
         return position, velocity
 
     def _continuous_acceleration_step(self, action):
-        position, velocity = self.state
-        self.accel = action * self.power
-        velocity += self.accel
+        position = self.state[:self.state.shape[0]//2]
+        velocity = self.state[self.state.shape[0]//2:]
 
-        #velocity = self._apply_friction(velocity)
+        accel = action * self.power
+        velocity += accel
+        velocity = self._apply_friction(velocity)
 
         return position, velocity
 
@@ -211,6 +212,7 @@ class MultiDimensionalEnv(gym.Env):
             else:
                 velocity[direction] = min(0,velocity[direction]+self.friction)
         return velocity
+
 
     def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
@@ -225,14 +227,15 @@ class MultiDimensionalEnv(gym.Env):
                 position, velocity = self._continuous_velocity_step(action)
             else:
                 position, velocity = self._discrete_velocity_step(action)
-
+        
         #update position
         position += velocity
-
+        
         for direction in range(self.n):
             position[direction] = np.clip(position[direction],
                     -self.max_position, self.max_position)
 
+        
         reach_high_reward = False
         reach_low_reward = False
 
@@ -268,21 +271,27 @@ class MultiDimensionalEnv(gym.Env):
 
         done = reach_high_reward or reach_low_reward or self._current_episode_step >= self._max_episode_steps
 
-        self.state = position
+        self.state = np.array(position)
 
         if self.acceleration:
-            self.state = [self.state] + [velocity]
+            self.state = np.r_[position,velocity]
 
-        return np.array(self.state), reward, done, info
+        self.position = position
+        self.velocity = velocity
+
+        return self.state, reward, done, info
 
 
     def reset(self):
 
+        self.position = np.random.uniform(
+                low=-self.max_position,high=self.max_position,size=self.n)
+        self.velocity = np.zeros((self.n))
+
         if self.acceleration:
-            self.state = np.zeros((2, self.n))
-            self.state[0] = np.random.uniform(low=-self.max_position, high=self.max_position, size=self.n)
+            self.state = np.r_[self.position,self.velocity]
         else:
-            self.state = np.random.uniform(low=-self.max_position, high=self.max_position, size=self.n)
+            self.state = self.position
 
         self._current_episode_step = 0
 
@@ -399,8 +408,8 @@ class MultiDimensionalEnv(gym.Env):
             if self.state is None:
                 return None
 
-            pos = self.state[0]
-            vel = self.state[1]
+            pos = self.position
+            vel = self.velocity
             agentx = (pos+self.max_position)*scale
             self.agenttrans.set_translation(agentx,agenty)
             self.agentlinetrans.set_translation(agentx,agenty)
@@ -451,8 +460,8 @@ class MultiDimensionalEnv(gym.Env):
                 
             if self.state is None: return None
 
-            pos = self.state[0]
-            vel = self.state[1]
+            pos = self.position
+            vel = self.velocity
             agent_position = (pos+self.max_position)*scale
             self.agenttrans.set_translation(agent_position[0],agent_position[1])
             self.agentlinetrans.set_translation(agent_position[0],agent_position[1])
