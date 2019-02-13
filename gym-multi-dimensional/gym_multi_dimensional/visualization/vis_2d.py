@@ -42,8 +42,8 @@ def visualize_RB(rb, acceleration=False):
 def visualize_Q_arrow(q_values):
 
     qs = q_values[:,0]
-    qs = qs - np.min(qs)
-    qs = qs/np.max(qs) #normalisation
+    qs -= np.min(qs)
+    qs /= np.max(qs)
     states = q_values[:,1:]
 
     red = 1.0
@@ -56,7 +56,7 @@ def visualize_Q_arrow(q_values):
     for q,state in zip(qs,states):
 
         x_pos , y_pos = state[0],state[1]
-        x_vel , y_vel = state[2]*10,state[3]*10
+        x_vel , y_vel = state[2]*0.1,state[3]*0.1
 
         color = matplotlib.colors.to_hex((red*(1-q), green*q, blue))
         plt.plot(x_pos, y_pos, '.', color=color)
@@ -72,6 +72,7 @@ def visualize_Q_contour(q_values):
     states = q_values[:,1:]
 
     fig, ax = plt.subplots(1)
+    plt.set_cmap('RdYlGn')
 
     plt.tricontourf(states[:,0], states[:,1], qs)
 
