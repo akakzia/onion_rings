@@ -79,11 +79,12 @@ class MultiDimensionalEnv(gym.Env):
         self.acceleration = acceleration
 
         self.max_position = 1
+        self.max_velocity = 1
 
         if self.acceleration:
             self.high_observation = np.r_[
                 np.ones((self.n))*self.max_position,
-                np.ones((self.n))*float('inf')
+                np.ones((self.n))*self.max_velocity
                 ]
         
         else:
@@ -95,7 +96,7 @@ class MultiDimensionalEnv(gym.Env):
                 high=self.high_observation, dtype=np.float32)
 
         if self.continuous:
-            self.max_action = 0.1
+            self.max_action = 1
             self.high_action = np.ones((self.n))*self.max_action
             self.low_action = -self.high_action
             self.action_space = spaces.Box(low=self.low_action,
@@ -170,7 +171,7 @@ class MultiDimensionalEnv(gym.Env):
         return self.state, velocity
 
     def _continuous_velocity_step(self, action):
-        return self.state, action
+        return self.state, action*self.power
 
     def _discrete_acceleration_step(self, action):
         position = self.state[:self.state.shape[0]//2]
@@ -191,8 +192,11 @@ class MultiDimensionalEnv(gym.Env):
         if direction > -1:
             accel = (orientation)*self.power
             velocity[direction] += accel
-
         velocity = self._apply_friction(velocity)
+        for direction in range(self.n):
+            velocity[direction] = np.clip(velocity[direction],
+                    -self.max_velocity, self.max_velocity)
+
         return position, velocity
 
     def _continuous_acceleration_step(self, action):
@@ -202,6 +206,9 @@ class MultiDimensionalEnv(gym.Env):
         accel = action * self.power
         velocity += accel
         velocity = self._apply_friction(velocity)
+        for direction in range(self.n):
+            velocity[direction] = np.clip(velocity[direction],
+                    -self.max_velocity, self.max_velocity)
 
         return position, velocity
 
