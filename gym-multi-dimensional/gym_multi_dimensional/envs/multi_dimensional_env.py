@@ -145,8 +145,6 @@ class MultiDimensionalEnv(gym.Env):
 
             # self.wall_position.append((i, - self.max_position))
 
-
-
     def seed(self,seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]

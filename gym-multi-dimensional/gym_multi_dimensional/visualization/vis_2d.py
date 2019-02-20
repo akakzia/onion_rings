@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 def visualize_RB(rb, acceleration=False):
 
@@ -78,4 +79,22 @@ def visualize_Q_contour(q_values):
 
     ax.add_patch(plt.Rectangle((-1, -1), 2, 2, angle=0.0, facecolor='none', edgecolor='blue', linewidth=1))
     plt.show()
+
+def visualize_Q_contour_time(all_q_values, path):
+
+    fig = plt.figure()
+
+    plt.set_cmap('RdYlGn')
+
+    def animate(i):
+        q_values = all_q_values[i]
+        qs = q_values[:,0]
+        states = q_values[:,1:]
+        return plt.tricontourf(states[:,0], states[:,1], qs)
+
+    anim = animation.FuncAnimation(fig, animate, interval=200, frames=len(all_q_values))
+
+    anim.save(path + ".mp4")
+
+
 
