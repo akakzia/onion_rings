@@ -94,7 +94,7 @@ def visualize_Q_contour_time(all_q_values, path):
 
     anim = animation.FuncAnimation(fig, animate, interval=200, frames=len(all_q_values))
 
-    anim.save(path + ".mp4")
+    anim.save(path + ".gif", writer='imagemagick', fps=4)
 
 
 
