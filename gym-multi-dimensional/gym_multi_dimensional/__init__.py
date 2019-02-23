@@ -1,6 +1,7 @@
 from gym.envs.registration import register
+from gym_multi_dimensional.envs import multi_dimensional_env as md
 
-def dynamic_register(n_dimensions=1, env_description={},continuous=True,
+def dynamic_register(n_dimensions=1, env_description=md.MultiDimensionalEnv.default_description, continuous=True,
         acceleration=True):
     register(id="MultiDimensional-v{}".format(n_dimensions),
              entry_point="gym_multi_dimensional.envs:MultiDimensionalEnv",

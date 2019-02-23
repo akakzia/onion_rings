@@ -37,7 +37,6 @@ class MultiDimensionalEnv(gym.Env):
         2n-1    Accelerate the agent to -1 orientation in the nth direction
         2n      Accelerate the agent to 1 orientation in the nth direction
 
-        
     Reward:
         Reward is 1 if the agent find the green (n-1)-face
         Reward is 0.1 if the agent find a red (n-1)-face
@@ -62,8 +61,14 @@ class MultiDimensionalEnv(gym.Env):
             }
 
     """ Default environement description , to be customized by the user """
-    default_description = { 'high_reward': 1 }
 
+    default_description = {
+                           'high_reward_value': 1,
+                           'low_reward_value': 0.1,
+                           'high_reward_count': 'half',
+                           'low_reward_count': 'half',
+                           'mode': 'deterministic'
+                           }
 
     def __init__(self, n_dimensions=1, env_description=default_description,continuous=True,acceleration=True):
 
@@ -71,8 +76,10 @@ class MultiDimensionalEnv(gym.Env):
         if n_dimensions <= 0:
             raise ValueError('Number of dimension must be strictly positive')
 
-#        if validate_env_description() is False:
-#            raise ValueError("Missing descriptors in environement description")
+        if self._validate_env_description(env_description) is False:
+            raise ValueError("Missing descriptors in environement description")
+
+        self.env_description = env_description
 
         self.n = n_dimensions
         self.continuous = continuous
@@ -124,26 +131,60 @@ class MultiDimensionalEnv(gym.Env):
         self.reset()
 
         """ Keep IDs of dimensions used for environement description """
-        self.high_reward_position = []
-        self.low_reward_position = []
-        self.wall_position = []
+        self.high_reward_position = np.array([]).reshape(-1, 2)
+        self.low_reward_position = np.array([]).reshape(-1, 2)
+        self.wall_position = np.array([]).reshape(-1, 2)
 
         self.load_description(env_description)
 
     def _validate_env_description(self, env_description):
+
+        if env_description.get("high_reward_value") is None:
+            return False
+        if env_description.get("low_reward_value") is None:
+            return False
+        if env_description.get("high_reward_count") is None:
+            return False
+        if env_description.get("low_reward_count") is None:
+            return False
+        if env_description.get("mode") is None:
+            return False
         return True
 
-    def load_description(self, env_description):
+    def generate_boundaries(self):
+        boundaries = []
 
         for i in range(self.n):
+            boundaries.append((i, self.max_position))
+            boundaries.append((i, -self.max_position))
 
-            """ Assign high boundary of nth dimension to high reward """
-            self.high_reward_position.append((i, self.max_position))
+        boundaries = np.array(boundaries)
 
-            """ Assign low boundary of nth dimension to low reward """ 
-            self.low_reward_position.append((i, - self.max_position))
+        if self.env_description['mode'] == 'random':
+            np.random.shuffle(boundaries)
 
-            # self.wall_position.append((i, - self.max_position))
+        return boundaries
+
+    def load_description(self, env_description):
+        boundaries = self.generate_boundaries()
+        first = self.high_reward_position
+        second = self.low_reward_position
+
+        if env_description['high_reward_count'] == "half":
+            self.high_reward_position = np.vstack((self.high_reward_position, boundaries[:self.n]))
+            boundaries = boundaries[self.n:]
+
+        elif env_description['high_reward_count'] == "one":
+            self.high_reward_position = np.vstack((self.high_reward_position, boundaries[:1]))
+            boundaries = boundaries[1:]
+
+        if env_description['low_reward_count'] == "half":
+            self.low_reward_position= np.vstack((self.low_reward_position, boundaries[:self.n]))
+            boundaries = boundaries[self.n:]
+
+        elif env_description['low_reward_count'] == "one":
+            self.low_reward_position = np.vstack((self.low_reward_position, boundaries[:1]))
+            boundaries = boundaries[1:]
 
     def seed(self,seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -232,34 +273,31 @@ class MultiDimensionalEnv(gym.Env):
                 position, velocity = self._continuous_velocity_step(action)
             else:
                 position, velocity = self._discrete_velocity_step(action)
-        
         #update position
         position += velocity
-        
         for direction in range(self.n):
             position[direction] = np.clip(position[direction],
                     -self.max_position, self.max_position)
 
-        
         reach_high_reward = False
         reach_low_reward = False
 
         """ Check for high reward in n dimensional space """
         for infos in self.high_reward_position:
             nth, boundary = infos
-            if abs(position[nth] + boundary) >= 2 * self.max_position:
+            if abs(position[int(nth)] + boundary) >= 2 * self.max_position:
                     reach_high_reward = True
 
         """ Check for low reward in n dimensional space """
         for infos in self.low_reward_position:
             nth, boundary = infos
-            if abs(position[nth] + boundary) >= 2 * self.max_position:
+            if abs(position[int(nth)] + boundary) >= 2 * self.max_position:
                     reach_low_reward = True
 
         """ Check for wall in n dimensional space """
         for infos in self.wall_position:
             nth, boundary = infos
-            if abs(position[nth] + boundary) >= 2 * self.max_position:
+            if abs(position[int(nth)] + boundary) >= 2 * self.max_position:
                 velocity[nth] = 0
 
         if reach_high_reward:
