@@ -118,8 +118,8 @@ class MultiDimensionalEnv(gym.Env):
             self.power = 0.1
 
         self.friction = 0.001
-        self.high_reward = 1
-        self.low_reward = 0.1
+        self.high_reward = env_description['high_reward_value']
+        self.low_reward = env_description['low_reward_value']
         self.action_cost = 0.01
         self._max_episode_steps = 1000
         self._current_episode_step = 0
