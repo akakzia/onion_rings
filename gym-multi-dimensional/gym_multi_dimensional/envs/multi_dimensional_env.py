@@ -156,6 +156,7 @@ class MultiDimensionalEnv(gym.Env):
 
         for i in range(self.n):
             boundaries.append((i, self.max_position))
+        for i in range(self.n):
             boundaries.append((i, -self.max_position))
 
         boundaries = np.array(boundaries)
@@ -172,19 +173,17 @@ class MultiDimensionalEnv(gym.Env):
 
         if env_description['high_reward_count'] == "half":
             self.high_reward_position = np.vstack((self.high_reward_position, boundaries[:self.n]))
-            boundaries = boundaries[self.n:]
 
         elif env_description['high_reward_count'] == "one":
-            self.high_reward_position = np.vstack((self.high_reward_position, boundaries[:1]))
-            boundaries = boundaries[1:]
+            self.high_reward_position = np.vstack((self.high_reward_position, boundaries[0]))
+        
+        boundaries = boundaries[self.n:]
 
         if env_description['low_reward_count'] == "half":
             self.low_reward_position= np.vstack((self.low_reward_position, boundaries[:self.n]))
-            boundaries = boundaries[self.n:]
 
         elif env_description['low_reward_count'] == "one":
-            self.low_reward_position = np.vstack((self.low_reward_position, boundaries[:1]))
-            boundaries = boundaries[1:]
+            self.low_reward_position = np.vstack((self.low_reward_position, boundaries[0]))
 
     def seed(self,seed=None):
         self.np_random, seed = seeding.np_random(seed)
