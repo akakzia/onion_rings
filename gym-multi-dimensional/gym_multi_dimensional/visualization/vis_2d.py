@@ -28,13 +28,12 @@ def visualize_RB(rb, acceleration=False, save=False, path=''):
         color = matplotlib.colors.to_hex((red, green, blue))
 
         plt.plot(x_pos, y_pos, '.', color=color)
-        plt.arrow(x_pos, y_pos, x_vel, y_vel, color="blue", width=0.001, head_width=0.008)
+        #plt.arrow(x_pos, y_pos, x_vel, y_vel, color="blue", width=0.001, head_width=0.008)
 
         if green < 1.0:
             green = min(green + step, 1.0)
         else:
             red = max(red - step, 0)
-
 
     ax.add_patch(plt.Rectangle((-1, -1), 2, 2, angle=0.0, facecolor='none', edgecolor='blue', linewidth=1))
 
@@ -85,9 +84,15 @@ def visualize_Q_contour(q_values, save=False, path=''):
     fig, ax = plt.subplots(1)
     plt.set_cmap('RdYlGn')
 
-    plt.tricontourf(states[:,0], states[:,1], qs)
+    colorset = plt.tricontourf(states[:,0], states[:,1], qs)
+    colorbar = plt.colorbar(colorset)
+    colorbar.ax.set_ylabel('Q values')
 
-    ax.add_patch(plt.Rectangle((-1, -1), 2, 2, angle=0.0, facecolor='none', edgecolor='blue', linewidth=1))
+    plt.title(r'$Q(s, \pi(s))$')
+    plt.xlabel('x dimension')
+    plt.ylabel('y dimension')
+    plt.xticks(np.arange(-1, 1, step=0.1))
+    plt.yticks(np.arange(-1, 1, step=0.1))
 
     if save:
         plt.savefig(path + '/Q_contour.png')
