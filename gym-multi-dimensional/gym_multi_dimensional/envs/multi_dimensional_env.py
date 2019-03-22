@@ -70,7 +70,7 @@ class MultiDimensionalEnv(gym.Env):
                            'mode': 'deterministic'
                            }
 
-    def __init__(self, n_dimensions=1, env_description=default_description,continuous=True,acceleration=True):
+    def __init__(self, n_dimensions=1, env_description=default_description,continuous=True,acceleration=True, reset_radius=None):
 
         """ Sanity checks """
         if n_dimensions <= 0:
@@ -84,6 +84,7 @@ class MultiDimensionalEnv(gym.Env):
         self.n = n_dimensions
         self.continuous = continuous
         self.acceleration = acceleration
+        self.reset_radius = reset_radius
 
         self.max_position = 1
         self.max_velocity = 1
@@ -136,6 +137,11 @@ class MultiDimensionalEnv(gym.Env):
         self.wall_position = np.array([]).reshape(-1, 2)
 
         self.load_description(env_description)
+
+        if self.reset_radius is None:
+            self.reset_radius = self.max_position
+        elif self.reset_radius < 0 or abs(self.reset_radius) > self.max_position:
+            raise ValueError('Reset radius must be a positive number between 0 and max_position ({})'.format(self.max_position))
 
     def _validate_env_description(self, env_description):
 
@@ -325,9 +331,7 @@ class MultiDimensionalEnv(gym.Env):
 
 
     def reset(self):
-
-        self.position = np.random.uniform(
-                low=-self.max_position,high=self.max_position,size=self.n)
+        self.position = np.random.uniform(low=-self.reset_radius,high=self.reset_radius,size=self.n)
         self.velocity = np.zeros((self.n))
 
         if self.acceleration:
