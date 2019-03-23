@@ -45,7 +45,6 @@ def visualize_RB(rb, acceleration=False, save=False, path=''):
 
 
 def visualize_Q_arrow(q_values, save=False, path=''):
-
     qs = q_values[:,0]
     qs -= np.min(qs)
     qs /= np.max(qs)
@@ -74,9 +73,7 @@ def visualize_Q_arrow(q_values, save=False, path=''):
 
     plt.show()
 
-
-
-def visualize_Q_contour(q_values, save=False, path=''):
+def visualize_Q_contour(q_values, save=False, path='', inline=True):
 
     qs = q_values[:,0]
     states = q_values[:,1:]
@@ -84,33 +81,46 @@ def visualize_Q_contour(q_values, save=False, path=''):
     fig, ax = plt.subplots(1)
     plt.set_cmap('RdYlGn')
 
-    colorset = plt.tricontourf(states[:,0], states[:,1], qs)
-    colorbar = plt.colorbar(colorset)
+    colorset = ax.tricontourf(states[:,0], states[:,1], qs)
+    colorbar = fig.colorbar(colorset)
     colorbar.ax.set_ylabel('Q values')
 
-    plt.title(r'$Q(s, \pi(s))$')
-    plt.xlabel('x dimension')
-    plt.ylabel('y dimension')
-    plt.xticks(np.arange(-1, 1, step=0.1))
-    plt.yticks(np.arange(-1, 1, step=0.1))
+    ax.set_title(r'$Q(s, \pi(s))$')
+    ax.set_xlabel('x dimension')
+    ax.set_ylabel('y dimension')
+    ax.set_xticks(np.arange(-1, 1, step=0.1))
+    ax.set_yticks(np.arange(-1, 1, step=0.1))
 
     if save:
-        plt.savefig(path + '/Q_contour.png')
+        fig.savefig(path + '/Q_contour.png')
 
-    plt.show()
+    if inline is True:
+        plt.show()
 
+    else:
+        return fig
 
 def visualize_Q_contour_time(all_q_values, save=False, path=''):
 
-    fig = plt.figure()
+    fig, ax = plt.subplots(1)
 
     plt.set_cmap('RdYlGn')
 
     def animate(i):
+        fig.clear()
+        ax = fig.add_subplot(111)
         q_values = all_q_values[i]
         qs = q_values[:,0]
         states = q_values[:,1:]
-        return plt.tricontourf(states[:,0], states[:,1], qs)
+        colorset = ax.tricontourf(states[:,0], states[:,1], qs)
+        colorbar = plt.colorbar(colorset, aspect=20, format="%.4f")
+        colorbar.ax.set_ylabel('Q values')
+        colorbar.ax.tick_params(labelsize=10)
+        ax.set_title(r'$Q(s, \pi(s))$')
+        ax.set_xlabel('x dimension')
+        ax.set_ylabel('y dimension')
+        ax.set_xticks(np.arange(-1, 1, step=0.1))
+        ax.set_yticks(np.arange(-1, 1, step=0.1))
 
     anim = animation.FuncAnimation(fig, animate, interval=200, frames=len(all_q_values))
 

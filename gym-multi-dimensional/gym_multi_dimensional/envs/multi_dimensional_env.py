@@ -129,7 +129,6 @@ class MultiDimensionalEnv(gym.Env):
         self.viewer = None
         self.state = None
         self.seed()
-        self.reset()
 
         """ Keep IDs of dimensions used for environement description """
         self.high_reward_position = np.array([]).reshape(-1, 2)
@@ -140,8 +139,11 @@ class MultiDimensionalEnv(gym.Env):
 
         if self.reset_radius is None:
             self.reset_radius = self.max_position
+
         elif self.reset_radius < 0 or abs(self.reset_radius) > self.max_position:
             raise ValueError('Reset radius must be a positive number between 0 and max_position ({})'.format(self.max_position))
+
+        self.reset()
 
     def _validate_env_description(self, env_description):
 
