@@ -44,7 +44,7 @@ def visualize_RB(rb, acceleration=False, save=False, path=''):
 
 
 
-def visualize_Q_arrow(q_values, save=False, path=''):
+def visualize_Q_arrow(q_values, save=False, path='', inline=True):
     qs = q_values[:,0]
     qs -= np.min(qs)
     qs /= np.max(qs)
@@ -70,8 +70,12 @@ def visualize_Q_arrow(q_values, save=False, path=''):
 
     if save:
         plt.savefig(path + "/Q_arrow.png")
+    
+    if inline is True:
+        plt.show()
 
-    plt.show()
+    else:
+        return fig
 
 def visualize_Q_contour(q_values, save=False, path='', inline=True):
 
@@ -116,7 +120,7 @@ def visualize_Q_contour_time(all_q_values, save=False, path=''):
         colorbar = plt.colorbar(colorset, aspect=20, format="%.4f")
         colorbar.ax.set_ylabel('Q values')
         colorbar.ax.tick_params(labelsize=10)
-        ax.set_title(r'$Q(s, \pi(s))$')
+        ax.set_title(r'$Q(s, \pi(s))$ timestep : {}'.format(i))
         ax.set_xlabel('x dimension')
         ax.set_ylabel('y dimension')
         ax.set_xticks(np.arange(-1, 1, step=0.1))
@@ -126,6 +130,49 @@ def visualize_Q_contour_time(all_q_values, save=False, path=''):
 
     if save:
         anim.save(path + "/Q_contour_time.gif", writer='imagemagick', fps=4)
+
+
+def visualize_Q_arrow_time(all_q_values, save=False, path=''):
+
+    fig, ax = plt.subplots(1)
+
+    plt.set_cmap('RdYlGn')
+
+    def animate(i):
+        fig.clear()
+        ax = fig.add_subplot(111)
+        q_values = all_q_values[i]
+
+        qs = q_values[:,0]
+        qs -= np.min(qs)
+        qs /= np.max(qs)
+        states = q_values[:,1:]
+
+        red = 1.0
+        green = 1.0
+        blue = 0
+
+        for q,state in zip(qs,states):
+
+            x_pos , y_pos = state[0],state[1]
+            x_vel , y_vel = state[2]*0.1,state[3]*0.1
+
+            color = matplotlib.colors.to_hex((red*(1-q), green*q, blue))
+            ax.plot(x_pos, y_pos, '.', color=color)
+            ax.arrow(x_pos, y_pos, x_vel, y_vel, color=color, width=0.001, head_width=0.008)
+
+        ax.add_patch(plt.Rectangle((-1, -1), 2, 2, angle=0.0, facecolor='none', edgecolor='blue', linewidth=1))
+        ax.set_title(r'$Q(s, \pi(s))$ timestep : {}'.format(i))
+        ax.set_xlabel('x dimension')
+        ax.set_ylabel('y dimension')
+        ax.set_xticks(np.arange(-1, 1, step=0.1))
+        ax.set_yticks(np.arange(-1, 1, step=0.1))
+
+    anim = animation.FuncAnimation(fig, animate, interval=200, frames=len(all_q_values))
+
+    if save:
+        anim.save(path + "/Q_arrow_time.gif", writer='imagemagick', fps=4)
+
 
 
 
