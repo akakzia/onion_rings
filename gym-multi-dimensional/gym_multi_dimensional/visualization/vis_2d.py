@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def visualize_RB(rb, acceleration=False, save=False, path=''):
 
@@ -12,6 +12,8 @@ def visualize_RB(rb, acceleration=False, save=False, path=''):
     step = 1.0 / (len(rb) / 2)
 
     fig, ax = plt.subplots(1)
+    divider = make_axes_locatable(ax)
+
     plt.set_cmap('RdYlGn')
 
     for exp in rb:
@@ -27,7 +29,6 @@ def visualize_RB(rb, acceleration=False, save=False, path=''):
         y_vel -= y_pos
 
         color = matplotlib.colors.to_hex((red, green, blue))
-
         plt.plot(x_pos, y_pos, '.', color=color)
         #plt.arrow(x_pos, y_pos, x_vel, y_vel, color="blue", width=0.001, head_width=0.008)
 
@@ -41,6 +42,12 @@ def visualize_RB(rb, acceleration=False, save=False, path=''):
     plt.ylabel('2nd dimension')
     plt.xticks(np.arange(-1, 1, step=0.2))
     plt.yticks(np.arange(-1, 1, step=0.2))
+
+    cax = divider.append_axes('right', size='5%', pad=0.05)
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
+    colorbar = matplotlib.colorbar.ColorbarBase(cax, norm=norm, orientation='vertical')
+    colorbar.set_ticks([0, 1])
+    colorbar.ax.set_yticklabels(['Older samples', 'Recent samples'])
 
 
     if save:
