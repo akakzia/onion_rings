@@ -36,7 +36,12 @@ def visualize_RB(rb, acceleration=False, save=False, path=''):
         else:
             red = max(red - step, 0)
 
-    ax.add_patch(plt.Rectangle((-1, -1), 2, 2, angle=0.0, facecolor='none', edgecolor='blue', linewidth=1))
+    plt.title(r'$replay buffer states$')
+    plt.xlabel('1st dimension')
+    plt.ylabel('2nd dimension')
+    plt.xticks(np.arange(-1, 1, step=0.2))
+    plt.yticks(np.arange(-1, 1, step=0.2))
+
 
     if save:
         plt.savefig(path + "/rb.png")
@@ -57,9 +62,13 @@ def visualize_Pi(pi_values, save=False, path='', inline=True):
         x_pi , y_pi = pi[0]*0.1,pi[1]*0.1
 
         plt.plot(x_pos, y_pos, '.', color="black")
-        plt.arrow(x_pos, y_pos, x_pi, y_pi, color="black", width=0.001, head_width=0.008)
+        plt.arrow(x_pos, y_pos, x_pi, y_pi, color="black", width=0.001, head_width=0.02)
 
-    plt.title(r'$Pi(s)$')
+    plt.title(r'$\pi(s)$')
+    plt.xlabel('1st dimension')
+    plt.ylabel('2nd dimension')
+    plt.xticks(np.arange(-1, 1, step=0.2))
+    plt.yticks(np.arange(-1, 1, step=0.2))
 
     if save:
         plt.savefig(path + "/Pi_arrow.png")
@@ -89,13 +98,13 @@ def visualize_Pi_time(all_pi_values, save=False, path='',eval_freq=1):
             x_pi , y_pi = pi[0]*0.1,pi[1]*0.1
 
             ax.plot(x_pos, y_pos, '.', color="black")
-            ax.arrow(x_pos, y_pos, x_pi, y_pi, color="black", width=0.001, head_width=0.008)
+            ax.arrow(x_pos, y_pos, x_pi, y_pi, color="black", width=0.001, head_width=0.02)
 
-        ax.set_title(r'$Pi(s)$ timestep : {}'.format(i*eval_freq))
-        ax.set_xlabel('x dimension')
-        ax.set_ylabel('y dimension')
-        ax.set_xticks(np.arange(-1, 1, step=0.1))
-        ax.set_yticks(np.arange(-1, 1, step=0.1))
+        ax.set_title(r'$\pi(s)$ learning timestep : {}'.format(int(i*eval_freq)))
+        ax.set_xlabel('1st dimension')
+        ax.set_ylabel('2nd dimension')
+        ax.set_xticks(np.arange(-1, 1, step=0.2))
+        ax.set_yticks(np.arange(-1, 1, step=0.2))
 
     anim = animation.FuncAnimation(fig, animate, interval=200, frames=len(all_pi_values))
 
@@ -117,10 +126,10 @@ def visualize_Q(q_values, save=False, path='', inline=True):
     colorbar.ax.set_ylabel('Q values')
 
     ax.set_title(r'$Q(s, \pi(s))$')
-    ax.set_xlabel('x dimension')
-    ax.set_ylabel('y dimension')
-    ax.set_xticks(np.arange(-1, 1, step=0.1))
-    ax.set_yticks(np.arange(-1, 1, step=0.1))
+    ax.set_xlabel('1st dimension')
+    ax.set_ylabel('2nd dimension')
+    ax.set_xticks(np.arange(-1, 1, step=0.2))
+    ax.set_yticks(np.arange(-1, 1, step=0.2))
 
     if save:
         fig.savefig(path + '/Q_contour.png')
@@ -148,11 +157,11 @@ def visualize_Q_time(all_q_values, save=False, path='',eval_freq=1):
         colorbar = plt.colorbar(colorset, aspect=20, format="%.4f")
         colorbar.ax.set_ylabel('Q values')
         colorbar.ax.tick_params(labelsize=10)
-        ax.set_title(r'$Q(s, \pi(s))$ timestep : {}'.format(i*eval_freq))
-        ax.set_xlabel('x dimension')
-        ax.set_ylabel('y dimension')
-        ax.set_xticks(np.arange(-1, 1, step=0.1))
-        ax.set_yticks(np.arange(-1, 1, step=0.1))
+        ax.set_title(r'$Q(s, \pi(s))$ learning timestep : {}'.format(int(i*eval_freq)))
+        ax.set_xlabel('1st dimension')
+        ax.set_ylabel('2nd dimension')
+        ax.set_xticks(np.arange(-1, 1, step=0.2))
+        ax.set_yticks(np.arange(-1, 1, step=0.2))
 
     anim = animation.FuncAnimation(fig, animate, interval=200, frames=len(all_q_values))
 
