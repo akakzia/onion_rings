@@ -71,7 +71,7 @@ def visualize_Pi(pi_values, save=False, path='', inline=True):
         return fig
 
 
-def visualize_Pi_time(all_pi_values, save=False, path=''):
+def visualize_Pi_time(all_pi_values, save=False, path='',eval_freq=1):
 
     fig, ax = plt.subplots(1)
 
@@ -91,7 +91,7 @@ def visualize_Pi_time(all_pi_values, save=False, path=''):
             ax.plot(x_pos, y_pos, '.', color="black")
             ax.arrow(x_pos, y_pos, x_pi, y_pi, color="black", width=0.001, head_width=0.008)
 
-        ax.set_title(r'$Pi(s)$ timestep : {}'.format(i))
+        ax.set_title(r'$Pi(s)$ timestep : {}'.format(i*eval_freq))
         ax.set_xlabel('x dimension')
         ax.set_ylabel('y dimension')
         ax.set_xticks(np.arange(-1, 1, step=0.1))
@@ -132,7 +132,7 @@ def visualize_Q(q_values, save=False, path='', inline=True):
         return fig
 
 
-def visualize_Q_time(all_q_values, save=False, path=''):
+def visualize_Q_time(all_q_values, save=False, path='',eval_freq=1):
 
     fig, ax = plt.subplots(1)
 
@@ -148,7 +148,7 @@ def visualize_Q_time(all_q_values, save=False, path=''):
         colorbar = plt.colorbar(colorset, aspect=20, format="%.4f")
         colorbar.ax.set_ylabel('Q values')
         colorbar.ax.tick_params(labelsize=10)
-        ax.set_title(r'$Q(s, \pi(s))$ timestep : {}'.format(i))
+        ax.set_title(r'$Q(s, \pi(s))$ timestep : {}'.format(i*eval_freq))
         ax.set_xlabel('x dimension')
         ax.set_ylabel('y dimension')
         ax.set_xticks(np.arange(-1, 1, step=0.1))
