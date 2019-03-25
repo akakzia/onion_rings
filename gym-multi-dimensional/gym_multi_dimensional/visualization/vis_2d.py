@@ -87,7 +87,7 @@ def visualize_Pi(pi_values, save=False, name="Pi_arrow.png", title=r'$\pi(s)$', 
         return fig
 
 
-def visualize_Pi_time(all_pi_values, save=False, name="Pi_arrow_time.gif", title=r'$\pi(s)$', path='',eval_freq=1):
+def visualize_Pi_time(all_pi_values, save=False, name="Pi_arrow_time.gif", title=r'$\pi(s)$', path='', steps_name="", steps=None, fps=4):
 
     fig, ax = plt.subplots(1)
 
@@ -107,16 +107,16 @@ def visualize_Pi_time(all_pi_values, save=False, name="Pi_arrow_time.gif", title
             ax.plot(x_pos, y_pos, '.', color="black")
             ax.arrow(x_pos, y_pos, x_pi, y_pi, color="black", width=0.001, head_width=0.02)
 
-        ax.set_title(title + r' learning timestep : {}'.format(int(i*eval_freq)))
+        ax.set_title(title + r' ; {}'.format(steps_name) + ' {}'.format(int(steps[i])))
         ax.set_xlabel('1st dimension')
         ax.set_ylabel('2nd dimension')
         ax.set_xticks(np.arange(-1, 1, step=0.2))
         ax.set_yticks(np.arange(-1, 1, step=0.2))
 
-    anim = animation.FuncAnimation(fig, animate, interval=200, frames=len(all_pi_values))
+    anim = animation.FuncAnimation(fig, animate, interval=200, frames=len(steps))
 
     if save:
-        anim.save(path + "/"+name, writer='imagemagick', fps=4)
+        anim.save(path + "/"+name, writer='imagemagick', fps=fps)
 
 
 
@@ -148,7 +148,7 @@ def visualize_Q(q_values, save=False, name='Q_contour.png', title=r'$Q(s,\pi(s))
         return fig
 
 
-def visualize_Q_time(all_q_values, save=False, name="Q_contour_time.gif", title=r'$Q(s,\pi(s))$', path='',eval_freq=1):
+def visualize_Q_time(all_q_values, save=False, name="Q_contour_time.gif", title=r'$Q(s,\pi(s))$', path='', steps_name="", steps=None, fps=4):
 
     fig, ax = plt.subplots(1)
 
@@ -164,13 +164,14 @@ def visualize_Q_time(all_q_values, save=False, name="Q_contour_time.gif", title=
         colorbar = plt.colorbar(colorset, aspect=20, format="%.4f")
         colorbar.ax.set_ylabel('Q values')
         colorbar.ax.tick_params(labelsize=10)
-        ax.set_title(title + r' learning timestep : {}'.format(int(i*eval_freq)))
+
+        ax.set_title(title + r' ; {}'.format(steps_name) + ' {}'.format(int(steps[i])))
         ax.set_xlabel('1st dimension')
         ax.set_ylabel('2nd dimension')
         ax.set_xticks(np.arange(-1, 1, step=0.2))
         ax.set_yticks(np.arange(-1, 1, step=0.2))
 
-    anim = animation.FuncAnimation(fig, animate, interval=200, frames=len(all_q_values))
+    anim = animation.FuncAnimation(fig, animate, interval=200, frames=len(steps))
 
     if save:
-        anim.save(path + "/"+name, writer='imagemagick', fps=4)
+        anim.save(path + "/"+name, writer='imagemagick', fps=fps)
