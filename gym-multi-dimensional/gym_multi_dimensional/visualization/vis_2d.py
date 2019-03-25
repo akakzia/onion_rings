@@ -37,7 +37,7 @@ def visualize_RB(rb, acceleration=False, save=False, path=''):
         else:
             red = max(red - step, 0)
 
-    plt.title(r'$replay buffer states$')
+    plt.title("Replay buffer states")
     plt.xlabel('1st dimension')
     plt.ylabel('2nd dimension')
     plt.xticks(np.arange(-1, 1, step=0.2))
@@ -47,7 +47,7 @@ def visualize_RB(rb, acceleration=False, save=False, path=''):
     norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
     colorbar = matplotlib.colorbar.ColorbarBase(cax, norm=norm, orientation='vertical')
     colorbar.set_ticks([0, 1])
-    colorbar.ax.set_yticklabels(['Older samples', 'Recent samples'])
+    colorbar.ax.set_yticklabels(['Old', 'New'])
 
 
     if save:
