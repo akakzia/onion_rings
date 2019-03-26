@@ -122,7 +122,7 @@ class MultiDimensionalEnv(gym.Env):
         self.high_reward = env_description['high_reward_value']
         self.low_reward = env_description['low_reward_value']
         self.action_cost = 0.01
-        self._max_episode_steps = 1000
+        self._max_episode_steps = 10000
         self._current_episode_step = 0
         self.position = None
         self.velocity = None
