@@ -266,7 +266,8 @@ class MultiDimensionalEnv(gym.Env):
                 velocity[direction] = min(0,velocity[direction]+self.friction)
         return velocity
 
-    def step(self, action):
+    def step(self, action, forced_state=None):
+
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
         if self.acceleration:
@@ -279,6 +280,7 @@ class MultiDimensionalEnv(gym.Env):
                 position, velocity = self._continuous_velocity_step(action)
             else:
                 position, velocity = self._discrete_velocity_step(action)
+
         #update position
         position += velocity
         for direction in range(self.n):
@@ -316,8 +318,6 @@ class MultiDimensionalEnv(gym.Env):
             reward = 0
             info = ""
 
-        self._current_episode_step += 1
-
         done = reach_high_reward or reach_low_reward or self._current_episode_step >= self._max_episode_steps
 
         self.state = np.array(position)
@@ -325,14 +325,16 @@ class MultiDimensionalEnv(gym.Env):
         if self.acceleration:
             self.state = np.r_[position,velocity]
 
+        self._current_episode_step += 1
         self.position = position
         self.velocity = velocity
+
 
         return self.state, reward, done, info
 
 
     def reset(self):
-        self.position = np.random.uniform(low=max(-self.reset_radius, self.max_position),high=min(self.reset_radius, self.max_position),size=self.n)
+        self.position = np.random.uniform(low=max(-self.reset_radius, -self.max_position),high=min(self.reset_radius, self.max_position),size=self.n)
         self.velocity = np.zeros((self.n))
 
         if self.acceleration:
