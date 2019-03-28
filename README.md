@@ -13,7 +13,7 @@ The environment is an hypercube in which the agent has to reach a specific hyper
 
 2D environement with rewards on all dimensions | 2D environement with rewards on the first dimension
 :------:|:--------:
-![2d 1 reward](https://github.com/hroussille/RL-evaluation-environment/blob/master/visualizations/2d_1reward.png) | ![2d 2 rewards](https://github.com/hroussille/RL-evaluation-environment/blob/master/visualizations/2d_2reward.png)
+![2d 2 reward](https://github.com/hroussille/RL-evaluation-environment/blob/master/visualizations/2d_2reward.png) | ![2d 1 rewards](https://github.com/hroussille/RL-evaluation-environment/blob/master/visualizations/2d_1reward.png)
 
 The visualizations represents the high reward of the environement in green and low reward in red.
 environenment with 3D or more aren't visualizable but the works the same
