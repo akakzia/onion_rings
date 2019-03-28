@@ -48,6 +48,9 @@ def visualize_RB(rb, acceleration=False, filter=None, save=False, path=''):
 
     ax.set_clip_box(matplotlib.transforms.Bbox([[-1, -1], [1, 1]]))
 
+    ax.set_xlim(-1, 1)
+    ax.set_ylim(-1, 1)
+
     cax = divider.append_axes('right', size='5%', pad=0.05)
     norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
     colorbar = matplotlib.colorbar.ColorbarBase(cax, norm=norm, orientation='vertical')
