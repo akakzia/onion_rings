@@ -44,7 +44,7 @@ def visualize_RB(rb, acceleration=False, filter=None, save=False, path=''):
     plt.yticks(np.arange(-1, 1, step=0.2))
 
     if filter is not None:
-        ax.add_artist(plt.Circle(filter.center, filter.size, color='r'))
+        ax.add_artist(plt.Circle(filter.center, filter.size, alpha=0.7, color='r'))
 
     ax.set_clip_box(matplotlib.transforms.Bbox([[-1, -1], [1, 1]]))
 
