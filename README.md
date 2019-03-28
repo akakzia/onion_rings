@@ -1,10 +1,22 @@
 # RL-evaluation-environment 
 
 This repository holds a gym compatible environment for RL algorithms benchmarking like :
+ - DQN
  - DDPG
  - TD3
 
-This environment is an hypercube in which the agent has to reach a specific hyperface to get a reward.
+The environment is an hypercube in which the agent has to reach a specific hyperface to get a reward.
+
+1D environement
+:----------:
+![1d](https://github.com/hroussille/RL-evaluation-environment/blob/master/visualizations/1d.png)
+
+2D environement with rewards on all dimensions | 2D environement with rewards on the first dimension
+:------:|:--------:
+![2d 1 reward](https://github.com/hroussille/RL-evaluation-environment/blob/master/visualizations/2d_1reward.png) | ![2d 2 rewards](https://github.com/hroussille/RL-evaluation-environment/blob/master/visualizations/2d_2reward.png)
+
+The visualizations represents the high reward of the environement in green and low reward in red.
+environenment with 3D or more aren't visualizable but the works the same
 
 ## Installation
 
