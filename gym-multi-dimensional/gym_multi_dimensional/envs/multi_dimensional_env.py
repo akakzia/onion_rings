@@ -138,7 +138,7 @@ class MultiDimensionalEnv(gym.Env):
         self.load_description(env_description)
 
         if self.reset_radius is None:
-            self.reset_radius = self.max_position
+            self.reset_radius = np.sqrt(self.n * (self.max_position ** 2))
 
         elif self.reset_radius < 0 or abs(self.reset_radius) > self.max_position:
             raise ValueError('Reset radius must be a positive number between 0 and max_position ({})'.format(self.max_position))

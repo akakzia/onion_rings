@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-def visualize_RB(rb, acceleration=False, save=False, path=''):
+def visualize_RB(rb, acceleration=False, filter=None, save=False, path=''):
 
     red = 1.0
     green = 0
@@ -42,6 +42,11 @@ def visualize_RB(rb, acceleration=False, save=False, path=''):
     plt.ylabel('2nd dimension')
     plt.xticks(np.arange(-1, 1, step=0.2))
     plt.yticks(np.arange(-1, 1, step=0.2))
+
+    if filter is not None:
+        ax.add_artist(plt.Circle(filter.center, filter.size, color='r'))
+
+    ax.set_clip_box(matplotlib.transforms.Bbox([[-1, -1], [1, 1]]))
 
     cax = divider.append_axes('right', size='5%', pad=0.05)
     norm = matplotlib.colors.Normalize(vmin=0, vmax=1)
