@@ -4,7 +4,7 @@ This repository holds a gym compatible environment for RL algorithms benchmarkin
  - DDPG
  - TD3
 
-This environment is an hyperrectangle in which the agent has to reach a specific side/face to get a reward.
+This environment is an hypercube in which the agent has to reach a specific hyperface to get a reward.
 
 ## Installation
 
@@ -31,7 +31,7 @@ env = gym.make(id)
 ## Options
 
  - n_dimensions : number of dimensions of the hyper rectangle
- - env_description : NOT YET IMPLEMENTED
+ - env_description : { "high_reward_value" : ,"low_reward_value" : , "high_reward_count" : , "low_rewars_count" : }
  - continuous : use continuous actions
  - acceleration : actions represents accelerations instead of velocity
 
