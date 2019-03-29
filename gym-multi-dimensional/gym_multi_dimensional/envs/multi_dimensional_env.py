@@ -94,10 +94,10 @@ class MultiDimensionalEnv(gym.Env):
                 np.ones((self.n))*self.max_position,
                 np.ones((self.n))*self.max_velocity
                 ]
-        
+
         else:
             self.high_observation = np.ones((self.n))*self.max_position
-        
+
         self.low_observation = -self.high_observation
 
         self.observation_space = spaces.Box(low=self.low_observation,
@@ -184,7 +184,7 @@ class MultiDimensionalEnv(gym.Env):
 
         elif env_description['high_reward_count'] == "one":
             self.high_reward_position = np.vstack((self.high_reward_position, boundaries[0]))
-        
+
         boundaries = boundaries[self.n:]
 
         if env_description['low_reward_count'] == "half":
@@ -198,7 +198,7 @@ class MultiDimensionalEnv(gym.Env):
         return [seed]
 
 
-    def _discrete_velocity_step(self, action):
+    def _discrete_velocity_step(self, state, action):
         if action==0:
             orientation = 1
             direction = -1
@@ -216,12 +216,12 @@ class MultiDimensionalEnv(gym.Env):
 
         return self.state, velocity
 
-    def _continuous_velocity_step(self, action):
-        return self.state, action*self.power
+    def _continuous_velocity_step(self, state, action):
+        return state, action*self.power
 
     def _discrete_acceleration_step(self, action):
-        position = self.state[:self.state.shape[0]//2]
-        velocity = self.state[self.state.shape[0]//2:]
+        position = state[:state.shape[0]//2]
+        velocity = state[state.shape[0]//2:]
 
         if action==0:
             orientation = 1
@@ -245,9 +245,9 @@ class MultiDimensionalEnv(gym.Env):
 
         return position, velocity
 
-    def _continuous_acceleration_step(self, action):
-        position = self.state[:self.state.shape[0]//2]
-        velocity = self.state[self.state.shape[0]//2:]
+    def _continuous_acceleration_step(self, state, action):
+        position = state[:state.shape[0]//2]
+        velocity = state[state.shape[0]//2:]
 
         accel = action * self.power
         velocity += accel
@@ -258,7 +258,7 @@ class MultiDimensionalEnv(gym.Env):
 
         return position, velocity
 
-    def _apply_friction(self, velocity):
+    def _apply_friction(self, state, velocity):
         for direction in range(self.n):
             if velocity[direction]>0:
                 velocity[direction] = max(0,velocity[direction]-self.friction)
@@ -266,29 +266,29 @@ class MultiDimensionalEnv(gym.Env):
                 velocity[direction] = min(0,velocity[direction]+self.friction)
         return velocity
 
-    def step(self, action, forced_state=None):
-
-        assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
-
+    def _compute_step(self, current_state, action):
         if self.acceleration:
             if self.continuous:
-                position, velocity = self._continuous_acceleration_step(action)
+                position, velocity = self._continuous_acceleration_step(current_state, action)
             else:
-                position, velocity = self._discrete_acceleration_step(action)
+                position, velocity = self._discrete_acceleration_step(current_state, action)
         else:
             if self.continuous:
-                position, velocity = self._continuous_velocity_step(action)
+                position, velocity = self._continuous_velocity_step(current_state, action)
             else:
-                position, velocity = self._discrete_velocity_step(action)
+                position, velocity = self._discrete_velocity_step(current_state, action)
 
-        #update position
+        return position, velocity
+
+    def _apply_state(self, position, velocity):
         position += velocity
         for direction in range(self.n):
             position[direction] = np.clip(position[direction],
                     -self.max_position, self.max_position)
+        return position
 
+    def _check_high_reward(self, position):
         reach_high_reward = False
-        reach_low_reward = False
 
         """ Check for high reward in n dimensional space """
         for infos in self.high_reward_position:
@@ -296,17 +296,66 @@ class MultiDimensionalEnv(gym.Env):
             if abs(position[int(nth)] + boundary) >= 2 * self.max_position:
                     reach_high_reward = True
 
+        return reach_high_reward
+
+    def _check_low_reward(self, position):
+        reach_low_reward = False
+
         """ Check for low reward in n dimensional space """
         for infos in self.low_reward_position:
             nth, boundary = infos
             if abs(position[int(nth)] + boundary) >= 2 * self.max_position:
                     reach_low_reward = True
 
+        return reach_low_reward
+
+    def _check_walls(self, position, velocity):
         """ Check for wall in n dimensional space """
         for infos in self.wall_position:
             nth, boundary = infos
             if abs(position[int(nth)] + boundary) >= 2 * self.max_position:
                 velocity[nth] = 0
+
+        return velocity
+
+    def sample_step(self, state, action):
+
+        position, velocity = self._compute_step(state, action)
+        position = self._apply_state(position, velocity)
+
+        reach_high_reward = self._check_high_reward(position)
+        reach_low_reward = self._check_low_reward(position)
+        velocity = self._check_walls(position, velocity)
+
+        if reach_high_reward:
+            reward = self.high_reward
+            info = "high reward"
+        elif reach_low_reward:
+            reward = self.low_reward
+            info = "low reward"
+        else:
+            reward = 0
+            info = ""
+
+        done = reach_high_reward or reach_low_reward or self._current_episode_step >= self._max_episode_steps
+
+        state = np.array(position)
+
+        if self.acceleration:
+            state = np.r_[position,velocity]
+
+        return state, reward, done, info
+
+    def step(self, action):
+
+        assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
+
+        position, velocity = self._compute_step(self.state, action)
+        position = self._apply_state(position, velocity)
+
+        reach_high_reward = self._check_high_reward(position)
+        reach_low_reward = self._check_low_reward(position)
+        velocity = self._check_walls(position, velocity)
 
         if reach_high_reward:
             reward = self.high_reward
