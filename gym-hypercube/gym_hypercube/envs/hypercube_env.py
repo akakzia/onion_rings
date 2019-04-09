@@ -5,7 +5,7 @@ import copy
 from gym import spaces
 from gym.utils import seeding
 
-class MultiDimensionalEnv(gym.Env):
+class HypercubeEnv(gym.Env):
     """
     Description:
         An agent is in a n-cube (n dimension hypercube). The goal is to reach
