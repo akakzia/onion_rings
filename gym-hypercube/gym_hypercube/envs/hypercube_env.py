@@ -67,7 +67,8 @@ class HypercubeEnv(gym.Env):
                            'low_reward_value': 0.1,
                            'high_reward_count': 'half',
                            'low_reward_count': 'half',
-                           'mode': 'deterministic'
+                           'mode': 'deterministic',
+                           'speed_limit_mode' : 'vector_norm'
                            }
 
     def __init__(self, n_dimensions=1, env_description=default_description,continuous=True,acceleration=True, reset_radius=None):
@@ -87,7 +88,7 @@ class HypercubeEnv(gym.Env):
         self.reset_radius = reset_radius
 
         self.max_position = 1
-        self.max_velocity = 1
+        self.max_velocity = 0.1
 
         if self.acceleration:
             self.high_observation = np.r_[
@@ -115,8 +116,6 @@ class HypercubeEnv(gym.Env):
 
         if self.acceleration:
             self.power = 0.01
-        else: #if velocity
-            self.power = 0.1
 
         self.friction = 0.001
         self.high_reward = env_description['high_reward_value']
@@ -157,6 +156,9 @@ class HypercubeEnv(gym.Env):
             return False
         if env_description.get("mode") is None:
             return False
+        if env_description.get("speed_limit_mode") is None:
+            return False
+
         return True
 
     def generate_boundaries(self):
@@ -212,12 +214,12 @@ class HypercubeEnv(gym.Env):
             direction = action//2
 
         if direction > -1:
-            velocity[direction] = (orientation)*self.power
-
+            velocity[direction] = (orientation)*self.max_velocity
+        
         return self.state, velocity
 
     def _continuous_velocity_step(self, state, action):
-        return state, action*self.power
+        return state, action*self.max_velocity
 
     def _discrete_acceleration_step(self, action):
         position = state[:state.shape[0]//2]
@@ -351,6 +353,11 @@ class HypercubeEnv(gym.Env):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
         position, velocity = self._compute_step(self.state, action)
+
+        if self.env_description['speed_limit_mode'] == 'vector_norm':
+            if np.linalg.norm(velocity) > self.max_velocity:
+                velocity = ( velocity / np.linalg.norm(velocity) ) * self.max_velocity
+
         position = self._apply_state(position, velocity)
 
         reach_high_reward = self._check_high_reward(position)
