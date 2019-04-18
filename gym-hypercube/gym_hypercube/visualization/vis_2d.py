@@ -29,20 +29,21 @@ def visualize_RB(rb, acceleration=False, filter=None, save=False, path=''):
         y_vel -= y_pos
 
         color = matplotlib.colors.to_hex((red, green, blue))
-        plt.plot(x_pos, y_pos, '.', color=color)
+        ax.plot(x_pos, y_pos, '.', color=color)
 
         if green < 1.0:
             green = min(green + step, 1.0)
         else:
             red = max(red - step, 0)
 
-    plt.title("Replay buffer states",fontsize=12)
-    plt.xlabel('1st dimension',fontsize=12)
-    plt.ylabel('2nd dimension',fontsize=12)
-    plt.xticks([-1,-0.5,0,0.5,1],fontsize=12)
-    plt.yticks([-1,-0.5,0,0.5,1],fontsize=12)
-    plt.xlim(-1, 1)
-    plt.ylim(-1, 1)
+    ax.set_title("Replay buffer states",fontsize=12)
+    ax.set_xlabel('1st dimension',fontsize=12)
+    ax.set_ylabel('2nd dimension',fontsize=12)
+    ax.set_xticks([-1,-0.5,0,0.5,1])
+    ax.set_yticks([-1,-0.5,0,0.5,1])
+    ax.tick_params(labelsize=12)
+    ax.set_xlim(-1, 1)
+    ax.set_ylim(-1, 1)
 
     if filter is not None:
         ax.add_artist(plt.Circle(filter.center, filter.size, alpha=0.7, color='r'))
@@ -55,10 +56,12 @@ def visualize_RB(rb, acceleration=False, filter=None, save=False, path=''):
 
     if save:
         plt.savefig(path + "/rb.png")
-    plt.show()
+    else:
+        plt.show()
+    fig.clear()
 
 
-def visualize_Pi(pi_values, save=False, name="Pi_arrow.png", title=r'$\pi(s)$', path='', inline=True):
+def visualize_Pi(pi_values, save=False, name="Pi_arrow.png", title=r'$\pi(s)$', path=''):
     states = pi_values[:,:2]
     pis = pi_values[:,2:]
 
@@ -69,25 +72,23 @@ def visualize_Pi(pi_values, save=False, name="Pi_arrow.png", title=r'$\pi(s)$', 
         x_pos , y_pos = state[0],state[1]
         x_pi , y_pi = pi[0]*0.1,pi[1]*0.1
 
-        plt.plot(x_pos, y_pos, '.', color="black")
-        plt.arrow(x_pos, y_pos, x_pi, y_pi, color="black", width=0.001, head_width=0.02)
+        ax.plot(x_pos, y_pos, '.', color="black")
+        ax.arrow(x_pos, y_pos, x_pi, y_pi, color="black", width=0.001, head_width=0.02)
 
-    plt.title(title,fontsize=12)
-    plt.xlabel('1st dimension',fontsize=12)
-    plt.ylabel('2nd dimension',fontsize=12)
-    plt.xticks([-1,-0.5,0,0.5,1],fontsize=12)
-    plt.yticks([-1,-0.5,0,0.5,1],fontsize=12)
-    plt.xlim(-1, 1)
-    plt.ylim(-1, 1)
+    ax.set_title(title,fontsize=12)
+    ax.set_xlabel('1st dimension',fontsize=12)
+    ax.set_ylabel('2nd dimension',fontsize=12)
+    ax.set_xticks([-1,-0.5,0,0.5,1])
+    ax.set_yticks([-1,-0.5,0,0.5,1])
+    ax.tick_params(labelsize=12)
+    ax.set_xlim(-1, 1)
+    ax.set_ylim(-1, 1)
 
     if save:
         plt.savefig(path + "/"+name)
-    
-    if inline is True:
-        plt.show()
-
     else:
-        return fig
+        plt.show()
+    fig.clear()
 
 
 def visualize_Pi_time(all_pi_values, save=False, name="Pi_arrow_time.gif", title=r'$\pi(s)$', path='', steps_name="", steps=None, fps=4):
@@ -110,22 +111,26 @@ def visualize_Pi_time(all_pi_values, save=False, name="Pi_arrow_time.gif", title
             ax.plot(x_pos, y_pos, '.', color="black")
             ax.arrow(x_pos, y_pos, x_pi, y_pi, color="black", width=0.001, head_width=0.02)
 
-        plt.title(title + r' ; {}'.format(steps_name) + ' {}'.format(int(steps[i])),fontsize=12)
-        plt.xlabel('1st dimension',fontsize=12)
-        plt.ylabel('2nd dimension',fontsize=12)
-        plt.xticks([-1,-0.5,0,0.5,1],fontsize=12)
-        plt.yticks([-1,-0.5,0,0.5,1],fontsize=12)
-        plt.xlim(-1, 1)
-        plt.ylim(-1, 1)
+        ax.set_title(title + r' ; {}'.format(steps_name) + ' {}'.format(int(steps[i])),fontsize=12)
+        ax.set_xlabel('1st dimension',fontsize=12)
+        ax.set_ylabel('2nd dimension',fontsize=12)
+        ax.set_xticks([-1,-0.5,0,0.5,1])
+        ax.set_yticks([-1,-0.5,0,0.5,1])
+        ax.tick_params(labelsize=12)
+        ax.set_xlim(-1, 1)
+        ax.set_ylim(-1, 1)
 
     anim = animation.FuncAnimation(fig, animate, interval=200, frames=len(steps))
 
     if save:
         anim.save(path + "/"+name, writer='imagemagick', fps=fps)
+    else:
+        plt.show()
+    fig.clear()
 
 
 
-def visualize_Q(q_values, save=False, name='Q_contour.png', title=r'$Q(s,\pi(s))$', path='', inline=True):
+def visualize_Q(q_values, save=False, name='Q_contour.png', title=r'$Q(s,\pi(s))$', path=''):
 
     qs = q_values[:,0]
     states = q_values[:,1:]
@@ -137,24 +142,20 @@ def visualize_Q(q_values, save=False, name='Q_contour.png', title=r'$Q(s,\pi(s))
     colorbar = plt.colorbar(colorset, aspect=20, format="%.1e")
     colorbar.ax.tick_params(labelsize=12)
 
-    plt.title(title,fontsize=12)
-    plt.xlabel('1st dimension',fontsize=12)
-    plt.ylabel('2nd dimension',fontsize=12)
-    plt.xticks([-1,-0.5,0,0.5,1],fontsize=12)
-    plt.yticks([-1,-0.5,0,0.5,1],fontsize=12)
-    plt.xlim(-1, 1)
-    plt.ylim(-1, 1)
-
-
+    ax.set_title(title,fontsize=12)
+    ax.set_xlabel('1st dimension',fontsize=12)
+    ax.set_ylabel('2nd dimension',fontsize=12)
+    ax.set_xticks([-1,-0.5,0,0.5,1])
+    ax.set_yticks([-1,-0.5,0,0.5,1])
+    ax.tick_params(labelsize=12)
+    ax.set_xlim(-1, 1)
+    ax.set_ylim(-1, 1)
 
     if save:
         fig.savefig(path + '/'+name)
-
-    if inline is True:
-        plt.show()
-
     else:
-        return fig
+        plt.show()
+    fig.clear()
 
 
 def visualize_Q_time(all_q_values, save=False, name="Q_contour_time.gif", title=r'$Q(s,\pi(s))$', path='', steps_name="", steps=None, fps=4):
@@ -169,20 +170,24 @@ def visualize_Q_time(all_q_values, save=False, name="Q_contour_time.gif", title=
         q_values = all_q_values[i]
         qs = q_values[:,0]
         states = q_values[:,1:]
+
         colorset = ax.tricontourf(states[:,0], states[:,1], qs)
         colorbar = plt.colorbar(colorset, aspect=20, format="%.1e")
         colorbar.ax.tick_params(labelsize=12)
 
-        plt.title(title + r' ; {}'.format(steps_name) + ' {}'.format(int(steps[i])), fontsize=12)
-        plt.xlabel('1st dimension',fontsize=12)
-        plt.ylabel('2nd dimension',fontsize=12)
-        plt.xticks([-1,-0.5,0,0.5,1],fontsize=12)
-        plt.yticks([-1,-0.5,0,0.5,1],fontsize=12)
-        plt.xlim(-1, 1)
-        plt.ylim(-1, 1)
-
+        ax.set_title(title + r' {}'.format(steps_name) + ' {}'.format(int(steps[i])), fontsize=12)
+        ax.set_xlabel('1st dimension',fontsize=12)
+        ax.set_ylabel('2nd dimension',fontsize=12)
+        ax.set_xticks([-1,-0.5,0,0.5,1])
+        ax.set_yticks([-1,-0.5,0,0.5,1])
+        ax.tick_params(labelsize=12)
+        ax.set_xlim(-1, 1)
+        ax.set_ylim(-1, 1)
 
     anim = animation.FuncAnimation(fig, animate, interval=200, frames=len(steps))
 
     if save:
         anim.save(path + "/"+name, writer='imagemagick', fps=fps)
+    else:
+        plt.show()
+    fig.clear()
