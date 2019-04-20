@@ -53,6 +53,7 @@ def visualize_RB(rb, acceleration=False, filter=None, save=False, path=''):
     colorbar = matplotlib.colorbar.ColorbarBase(cax, norm=norm, orientation='vertical')
     colorbar.set_ticks([0, 1])
     colorbar.ax.set_yticklabels(['Old', 'New'])
+    colorbar.ax.tick_params(labelsize=14)
 
     if save:
         plt.savefig(path + "/rb.png")
